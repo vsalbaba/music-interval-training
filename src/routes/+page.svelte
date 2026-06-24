@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import Fretboard from '$lib/components/Fretboard.svelte';
+	import InfoPanel from '$lib/components/InfoPanel.svelte';
 	import { INTERVAL_DIFFICULTIES, type Interval, type IntervalDifficulty } from '$lib/music/intervals';
 	import { generateQuestion, type IntervalQuestion } from '$lib/exercise/interval-exercise';
 	import { CHORD_DIFFICULTIES, type ChordQuality, type ChordDifficulty } from '$lib/music/chords';
@@ -9,6 +10,7 @@
 
 	type View = 'exercise' | 'stats';
 	let currentView: View = $state('exercise');
+	let showInfo = $state(false);
 
 	type ExerciseType = 'intervals' | 'chords';
 	let exerciseType: ExerciseType = $state('intervals');
@@ -112,7 +114,7 @@
 		newQuestion();
 	}
 
-	function newQuestion() {
+	function newQuestion(autoplay = false) {
 		isCorrect = null;
 		if (exerciseType === 'intervals') {
 			intervalQuestion = generateQuestion(currentIntervalDiff.intervals);
@@ -121,20 +123,27 @@
 			chordQuestion = generateChordQuestion(currentChordDiff.qualities);
 			selectedChordAnswer = null;
 		}
+		if (autoplay) playCurrentQuestion();
 	}
 
 	async function playCurrentQuestion() {
 		if (isPlaying) return;
 		isPlaying = true;
-		if (exerciseType === 'intervals' && intervalQuestion) {
-			const { playIntervalPattern } = await import('$lib/audio/engine');
-			await playIntervalPattern(intervalQuestion.rootNoteString, intervalQuestion.intervalNoteString);
-			setTimeout(() => { isPlaying = false; }, 1400);
-		} else if (exerciseType === 'chords' && chordQuestion) {
-			const { playChordPattern } = await import('$lib/audio/engine');
-			await playChordPattern(chordQuestion.noteStrings);
-			const totalTime = chordQuestion.noteStrings.length * 500 + 200 + chordQuestion.noteStrings.length * 40;
-			setTimeout(() => { isPlaying = false; }, totalTime + 200);
+		try {
+			if (exerciseType === 'intervals' && intervalQuestion) {
+				const { playIntervalPattern } = await import('$lib/audio/engine');
+				await playIntervalPattern(intervalQuestion.rootNoteString, intervalQuestion.intervalNoteString);
+				setTimeout(() => { isPlaying = false; }, 1400);
+			} else if (exerciseType === 'chords' && chordQuestion) {
+				const { playChordPattern } = await import('$lib/audio/engine');
+				await playChordPattern(chordQuestion.noteStrings);
+				const totalTime = chordQuestion.noteStrings.length * 500 + 200 + chordQuestion.noteStrings.length * 40;
+				setTimeout(() => { isPlaying = false; }, totalTime + 200);
+			} else {
+				isPlaying = false;
+			}
+		} catch {
+			isPlaying = false;
 		}
 	}
 
@@ -261,144 +270,187 @@
 			</div>
 		</div>
 	{:else}
-		<!-- Exercise + Answer area -->
-		<div class="flex min-h-0 flex-1 flex-col items-center justify-center">
-			<!-- Exercise type selector + Stats button -->
-			<div class="mb-2 flex gap-2">
-				<button
-					class="rounded-lg px-4 py-2 text-sm font-semibold transition-colors
-						{exerciseType === 'intervals' ? 'bg-indigo-600' : 'bg-gray-700 hover:bg-gray-600'}"
-					onclick={() => switchExercise('intervals')}
-				>
-					Intervals
-				</button>
-				<button
-					class="rounded-lg px-4 py-2 text-sm font-semibold transition-colors
-						{exerciseType === 'chords' ? 'bg-indigo-600' : 'bg-gray-700 hover:bg-gray-600'}"
-					onclick={() => switchExercise('chords')}
-				>
-					Chords
-				</button>
-				<button
-					class="rounded-lg bg-gray-700 px-4 py-2 text-sm font-semibold transition-colors hover:bg-gray-600"
-					onclick={showStats}
-				>
-					Stats
-				</button>
-			</div>
+		<!-- Exercise + Info split area -->
+		<div class="relative flex min-h-0 flex-1">
+			<!-- Info toggle (upper right) -->
+			<button
+				class="absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-full border transition-colors
+					{showInfo ? 'border-indigo-500 bg-indigo-600 text-white' : 'border-gray-600 bg-gray-800 text-gray-400 hover:border-gray-500 hover:text-gray-300'}"
+				onclick={() => (showInfo = !showInfo)}
+				aria-label="Toggle reference info"
+			>
+				<span class="text-sm font-serif font-semibold italic">i</span>
+			</button>
 
-			<!-- Difficulty selector -->
-			<div class="mb-6 flex gap-1">
-				{#if exerciseType === 'intervals'}
-					{#each INTERVAL_DIFFICULTIES as diff}
-						<button
-							class="rounded px-3 py-1 text-xs font-medium transition-colors
-								{intervalDifficulty === diff.key ? 'bg-indigo-500/60 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}"
-							onclick={() => switchIntervalDifficulty(diff.key)}
-						>
-							{diff.label}
-						</button>
-					{/each}
-				{:else}
-					{#each CHORD_DIFFICULTIES as diff}
-						<button
-							class="rounded px-3 py-1 text-xs font-medium transition-colors
-								{chordDifficulty === diff.key ? 'bg-indigo-500/60 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}"
-							onclick={() => switchChordDifficulty(diff.key)}
-						>
-							{diff.label}
-						</button>
-					{/each}
-				{/if}
-			</div>
-
-			<!-- Exercise Area -->
-			<section class="flex flex-col items-center p-4">
-				<div class="mb-3 text-sm text-gray-400">
-					Score: {score.correct} / {score.total}
+			<!-- Exercise column -->
+			<div class="flex min-h-0 flex-1 flex-col items-center justify-center">
+				<!-- Exercise type selector + Stats button -->
+				<div class="mb-2 flex gap-2">
+					<button
+						class="rounded-lg px-4 py-2 text-sm font-semibold transition-colors
+							{exerciseType === 'intervals' ? 'bg-indigo-600' : 'bg-gray-700 hover:bg-gray-600'}"
+						onclick={() => switchExercise('intervals')}
+					>
+						Intervals
+					</button>
+					<button
+						class="rounded-lg px-4 py-2 text-sm font-semibold transition-colors
+							{exerciseType === 'chords' ? 'bg-indigo-600' : 'bg-gray-700 hover:bg-gray-600'}"
+						onclick={() => switchExercise('chords')}
+					>
+						Chords
+					</button>
+					<button
+						class="rounded-lg bg-gray-700 px-4 py-2 text-sm font-semibold transition-colors hover:bg-gray-600"
+						onclick={showStats}
+					>
+						Stats
+					</button>
 				</div>
 
-				<div class="flex gap-4">
-					<button
-						class="rounded-lg bg-indigo-600 px-6 py-3 font-semibold transition-colors hover:bg-indigo-500 disabled:opacity-50"
-						onclick={playCurrentQuestion}
-						disabled={isPlaying}
-					>
-						{isPlaying ? 'Playing...' : 'Play'}
-					</button>
-
-					{#if hasAnswered}
-						<button
-							class="rounded-lg bg-gray-700 px-6 py-3 font-semibold transition-colors hover:bg-gray-600"
-							onclick={newQuestion}
-						>
-							Next
-						</button>
+				<!-- Difficulty selector -->
+				<div class="mb-6 flex gap-1">
+					{#if exerciseType === 'intervals'}
+						{#each INTERVAL_DIFFICULTIES as diff}
+							<button
+								class="rounded px-3 py-1 text-xs font-medium transition-colors
+									{intervalDifficulty === diff.key ? 'bg-indigo-500/60 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}"
+								onclick={() => switchIntervalDifficulty(diff.key)}
+							>
+								{diff.label}
+							</button>
+						{/each}
+					{:else}
+						{#each CHORD_DIFFICULTIES as diff}
+							<button
+								class="rounded px-3 py-1 text-xs font-medium transition-colors
+									{chordDifficulty === diff.key ? 'bg-indigo-500/60 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}"
+								onclick={() => switchChordDifficulty(diff.key)}
+							>
+								{diff.label}
+							</button>
+						{/each}
 					{/if}
 				</div>
 
-				{#if hasAnswered}
-					<div class="mt-4 text-lg font-semibold {isCorrect ? 'text-green-400' : 'text-red-400'}">
-						{#if isCorrect}
-							Correct!
-						{:else}
-							Wrong -- it was {correctAnswerName}
+				<!-- Exercise Area -->
+				<section class="flex flex-col items-center p-4">
+					<div class="mb-3 text-sm text-gray-400">
+						Score: {score.correct} / {score.total}
+					</div>
+
+					<div class="flex gap-4">
+						<button
+							class="rounded-lg bg-indigo-600 px-6 py-3 font-semibold transition-colors hover:bg-indigo-500 disabled:opacity-50"
+							onclick={playCurrentQuestion}
+							disabled={isPlaying}
+						>
+							{isPlaying ? 'Playing...' : 'Play'}
+						</button>
+
+						{#if hasAnswered}
+							<button
+								class="rounded-lg bg-gray-700 px-6 py-3 font-semibold transition-colors hover:bg-gray-600"
+								onclick={() => newQuestion(true)}
+							>
+								Next
+							</button>
 						{/if}
 					</div>
-					{#if exerciseType === 'chords' && chordQuestion}
-						<div class="mt-1 text-xs text-gray-500">
-							{chordQuestion.shape.family}-shape at fret {chordQuestion.offset}
-						</div>
-					{/if}
-				{/if}
-			</section>
 
-			<!-- Answer Grid -->
-			<section class="flex shrink-0 flex-wrap items-center justify-center gap-3 p-4">
-				{#if exerciseType === 'intervals'}
-					{#each currentIntervalDiff.intervals as interval}
-						{@const isSelected = selectedIntervalAnswer?.semitones === interval.semitones}
-						{@const isAnswer = selectedIntervalAnswer !== null && intervalQuestion?.interval.semitones === interval.semitones}
-						<button
-							class="rounded-lg px-5 py-3 text-sm font-semibold transition-colors
-								{isSelected && isCorrect
-									? 'bg-green-600 text-white'
-									: isSelected && !isCorrect
-										? 'bg-red-600 text-white'
-										: isAnswer
-											? 'bg-green-600/50 text-white'
-											: hasAnswered
-												? 'bg-gray-800 text-gray-500 cursor-default'
-												: 'bg-gray-700 text-white hover:bg-gray-600 cursor-pointer'}"
-							onclick={() => submitIntervalAnswer(interval)}
-							disabled={hasAnswered}
-						>
-							{interval.name}
-						</button>
-					{/each}
-				{:else}
-					{#each currentChordDiff.qualities as quality}
-						{@const isSelected = selectedChordAnswer?.name === quality.name}
-						{@const isAnswer = selectedChordAnswer !== null && chordQuestion?.quality.name === quality.name}
-						<button
-							class="rounded-lg px-5 py-3 text-sm font-semibold transition-colors
-								{isSelected && isCorrect
-									? 'bg-green-600 text-white'
-									: isSelected && !isCorrect
-										? 'bg-red-600 text-white'
-										: isAnswer
-											? 'bg-green-600/50 text-white'
-											: hasAnswered
-												? 'bg-gray-800 text-gray-500 cursor-default'
-												: 'bg-gray-700 text-white hover:bg-gray-600 cursor-pointer'}"
-							onclick={() => submitChordAnswer(quality)}
-							disabled={hasAnswered}
-						>
-							{quality.name}
-						</button>
-					{/each}
-				{/if}
-			</section>
+					{#if hasAnswered}
+						<div class="mt-4 text-lg font-semibold {isCorrect ? 'text-green-400' : 'text-red-400'}">
+							{#if isCorrect}
+								Correct!
+							{:else}
+								Wrong -- it was {correctAnswerName}
+							{/if}
+						</div>
+						{#if exerciseType === 'chords' && chordQuestion}
+							{@const rootName = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'][chordQuestion.rootMidi % 12]}
+							{@const suffixMap = { Maj: '', Min: 'm', Dim: 'dim', Aug: 'aug', Sus2: 'sus2', Sus4: 'sus4', Dom7: '7', Maj7: 'maj7', Min7: 'm7' }}
+							{@const suffix = suffixMap[chordQuestion.quality.shortName] ?? chordQuestion.quality.shortName}
+							<div class="mt-1 text-xs text-gray-500">
+								{rootName}{suffix} -- {chordQuestion.shape.family}-shape at fret {chordQuestion.offset}
+							</div>
+						{/if}
+					{/if}
+				</section>
+
+				<!-- Answer Grid -->
+				<section class="flex shrink-0 flex-wrap items-center justify-center gap-3 p-4">
+					{#if exerciseType === 'intervals'}
+						{#each currentIntervalDiff.intervals as interval}
+							{@const isSelected = selectedIntervalAnswer?.semitones === interval.semitones}
+							{@const isAnswer = selectedIntervalAnswer !== null && intervalQuestion?.interval.semitones === interval.semitones}
+							<button
+								class="rounded-lg px-5 py-3 text-sm font-semibold transition-colors
+									{isSelected && isCorrect
+										? 'bg-green-600 text-white'
+										: isSelected && !isCorrect
+											? 'bg-red-600 text-white'
+											: isAnswer
+												? 'bg-green-600/50 text-white'
+												: hasAnswered
+													? 'bg-gray-800 text-gray-500 cursor-default'
+													: 'bg-gray-700 text-white hover:bg-gray-600 cursor-pointer'}"
+								onclick={() => submitIntervalAnswer(interval)}
+								disabled={hasAnswered}
+							>
+								{interval.name}
+							</button>
+						{/each}
+					{:else}
+						{#each currentChordDiff.qualities as quality}
+							{@const isSelected = selectedChordAnswer?.name === quality.name}
+							{@const isAnswer = selectedChordAnswer !== null && chordQuestion?.quality.name === quality.name}
+							<button
+								class="rounded-lg px-5 py-3 text-sm font-semibold transition-colors
+									{isSelected && isCorrect
+										? 'bg-green-600 text-white'
+										: isSelected && !isCorrect
+											? 'bg-red-600 text-white'
+											: isAnswer
+												? 'bg-green-600/50 text-white'
+												: hasAnswered
+													? 'bg-gray-800 text-gray-500 cursor-default'
+													: 'bg-gray-700 text-white hover:bg-gray-600 cursor-pointer'}"
+								onclick={() => submitChordAnswer(quality)}
+								disabled={hasAnswered}
+							>
+								{quality.name}
+							</button>
+						{/each}
+					{/if}
+				</section>
+			</div>
+
+			<!-- Info Panel: desktop split -->
+			{#if showInfo}
+				<div class="hidden min-h-0 w-1/2 border-l border-gray-800 md:block">
+					<InfoPanel mode={exerciseType} />
+				</div>
+			{/if}
+
+			<!-- Info Panel: mobile overlay -->
+			{#if showInfo}
+				<div class="absolute inset-0 z-10 bg-gray-950 md:hidden">
+					<div class="flex h-full flex-col">
+						<div class="flex items-center justify-between border-b border-gray-800 px-4 py-3">
+							<span class="text-sm font-semibold text-gray-300">Reference</span>
+							<button
+								class="rounded bg-gray-700 px-3 py-1 text-xs font-medium text-gray-300 hover:bg-gray-600"
+								onclick={() => (showInfo = false)}
+							>
+								Close
+							</button>
+						</div>
+						<div class="min-h-0 flex-1">
+							<InfoPanel mode={exerciseType} />
+						</div>
+					</div>
+				</div>
+			{/if}
 		</div>
 	{/if}
 

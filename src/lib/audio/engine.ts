@@ -1,30 +1,59 @@
 import * as Tone from 'tone';
 
-let synth: Tone.PluckSynth | null = null;
+const POOL_SIZE = 4;
+let synthPool: Tone.PluckSynth[] = [];
+let nextSynth = 0;
 
-async function ensureStarted() {
+export async function ensureStarted() {
 	if (Tone.getContext().state !== 'running') {
 		await Tone.start();
 	}
-	if (!synth) {
-		synth = new Tone.PluckSynth({
-			attackNoise: 2,
-			dampening: 4000,
-			resonance: 0.98
-		}).toDestination();
+	if (synthPool.length === 0) {
+		for (let i = 0; i < POOL_SIZE; i++) {
+			synthPool.push(
+				new Tone.PluckSynth({
+					attackNoise: 2,
+					dampening: 4000,
+					resonance: 0.98
+				}).toDestination()
+			);
+		}
 	}
 }
 
-export async function playNote(noteString: string, duration = '4n') {
+export function getSynth(): Tone.PluckSynth {
+	const s = synthPool[nextSynth % POOL_SIZE];
+	nextSynth++;
+	return s;
+}
+
+export function stopAll() {
+	for (const s of synthPool) {
+		s.dispose();
+	}
+	synthPool = [];
+	nextSynth = 0;
+	for (let i = 0; i < POOL_SIZE; i++) {
+		synthPool.push(
+			new Tone.PluckSynth({
+				attackNoise: 2,
+				dampening: 4000,
+				resonance: 0.98
+			}).toDestination()
+		);
+	}
+}
+
+export async function playNote(noteString: string) {
 	await ensureStarted();
-	synth!.triggerAttack(noteString, Tone.now());
+	getSynth().triggerAttack(noteString, Tone.now());
 }
 
 export async function playNotes(noteStrings: string[], staggerMs = 0) {
 	await ensureStarted();
 	const now = Tone.now();
 	for (let i = 0; i < noteStrings.length; i++) {
-		synth!.triggerAttack(noteStrings[i], now + (i * staggerMs) / 1000);
+		getSynth().triggerAttack(noteStrings[i], now + (i * staggerMs) / 1000);
 	}
 }
 
@@ -35,11 +64,13 @@ export async function playIntervalPattern(note1: string, note2: string) {
 	const pauseDuration = 0.2;
 	const strumStagger = 0.04;
 
-	synth!.triggerAttack(note1, now);
-	synth!.triggerAttack(note2, now + noteDuration);
+	const s1 = getSynth();
+	const s2 = getSynth();
+	s1.triggerAttack(note1, now);
+	s2.triggerAttack(note2, now + noteDuration);
 	const strumTime = now + noteDuration * 2 + pauseDuration;
-	synth!.triggerAttack(note1, strumTime);
-	synth!.triggerAttack(note2, strumTime + strumStagger);
+	s1.triggerAttack(note1, strumTime);
+	s2.triggerAttack(note2, strumTime + strumStagger);
 }
 
 export async function playChordPattern(notes: string[]) {
@@ -49,11 +80,12 @@ export async function playChordPattern(notes: string[]) {
 	const pauseDuration = 0.2;
 	const strumStagger = 0.04;
 
+	const synths = notes.map(() => getSynth());
 	for (let i = 0; i < notes.length; i++) {
-		synth!.triggerAttack(notes[i], now + i * noteDuration);
+		synths[i].triggerAttack(notes[i], now + i * noteDuration);
 	}
 	const strumTime = now + notes.length * noteDuration + pauseDuration;
 	for (let i = 0; i < notes.length; i++) {
-		synth!.triggerAttack(notes[i], strumTime + i * strumStagger);
+		synths[i].triggerAttack(notes[i], strumTime + i * strumStagger);
 	}
 }

@@ -1,0 +1,65 @@
+import { ALL_INTERVALS } from './intervals';
+import { ALL_CHORD_QUALITIES } from './chords';
+
+const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] as const;
+
+const SCALE_DEGREE_LABELS: Record<number, string> = {
+	0: '1',
+	1: 'b2',
+	2: '2',
+	3: 'b3',
+	4: '3',
+	5: '4',
+	6: 'b5',
+	7: '5',
+	8: 'b6',
+	9: '6',
+	10: 'b7',
+	11: '7',
+	12: '8'
+};
+
+export function getScaleDegreeLabel(semitones: number): string {
+	return SCALE_DEGREE_LABELS[semitones] ?? String(semitones);
+}
+
+export function getNoteName(pitchClass: number): string {
+	return NOTE_NAMES[((pitchClass % 12) + 12) % 12];
+}
+
+export interface IntervalTableRow {
+	degree: string;
+	shortName: string;
+	semitones: number;
+	name: string;
+	rootNote: string;
+	targetNote: string;
+}
+
+export function getIntervalTableRows(rootPitchClass: number): IntervalTableRow[] {
+	const rootNote = getNoteName(rootPitchClass);
+	return ALL_INTERVALS.map((interval) => ({
+		degree: getScaleDegreeLabel(interval.semitones),
+		shortName: interval.shortName,
+		semitones: interval.semitones,
+		name: interval.name,
+		rootNote,
+		targetNote: getNoteName(rootPitchClass + interval.semitones)
+	}));
+}
+
+export interface ChordTableRow {
+	formula: string;
+	name: string;
+	hint: string;
+	notes: string[];
+}
+
+export function getChordTableRows(rootPitchClass: number): ChordTableRow[] {
+	return ALL_CHORD_QUALITIES.map((quality) => ({
+		formula: quality.formula,
+		name: quality.name,
+		hint: quality.hint,
+		notes: quality.intervals.map((i) => getNoteName(rootPitchClass + i))
+	}));
+}
