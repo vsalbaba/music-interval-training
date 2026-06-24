@@ -29,6 +29,9 @@
 	let isCorrect: boolean | null = $state(null);
 	let score = $state({ correct: 0, total: 0 });
 	let isPlaying = $state(false);
+	let previewHighlights: HighlightedNote[] | null = $state(null);
+	let activeNoteMidi: number | null = $state(null);
+	let activeNoteTimers: ReturnType<typeof setTimeout>[] = [];
 
 	let intervalAccuracy: AccuracyEntry[] = $state([]);
 	let chordAccuracy: AccuracyEntry[] = $state([]);
@@ -38,6 +41,7 @@
 	type MutedString = { stringIndex: number };
 
 	let highlights: HighlightedNote[] = $derived.by(() => {
+		if (previewHighlights) return previewHighlights;
 		if (exerciseType === 'intervals') {
 			if (!intervalQuestion || selectedIntervalAnswer === null) return [];
 			return [
@@ -115,8 +119,16 @@
 		newQuestion();
 	}
 
+	function clearActiveNote() {
+		for (const t of activeNoteTimers) clearTimeout(t);
+		activeNoteTimers = [];
+		activeNoteMidi = null;
+	}
+
 	function newQuestion(autoplay = false) {
 		isCorrect = null;
+		previewHighlights = null;
+		clearActiveNote();
 		if (exerciseType === 'intervals') {
 			intervalQuestion = generateQuestion(currentIntervalDiff.intervals);
 			selectedIntervalAnswer = null;
@@ -130,16 +142,27 @@
 	async function playCurrentQuestion() {
 		if (isPlaying) return;
 		isPlaying = true;
+		clearActiveNote();
 		try {
 			if (exerciseType === 'intervals' && intervalQuestion) {
+				activeNoteMidi = intervalQuestion.rootMidi;
+				activeNoteTimers.push(setTimeout(() => { activeNoteMidi = intervalQuestion!.intervalMidi; }, 500));
+				activeNoteTimers.push(setTimeout(() => { activeNoteMidi = intervalQuestion!.rootMidi; }, 1200));
+				activeNoteTimers.push(setTimeout(() => { activeNoteMidi = null; }, 1300));
 				const { playIntervalPattern } = await import('$lib/audio/engine');
 				await playIntervalPattern(intervalQuestion.rootNoteString, intervalQuestion.intervalNoteString);
-				setTimeout(() => { isPlaying = false; }, 1400);
+				setTimeout(() => { isPlaying = false; clearActiveNote(); }, 1400);
 			} else if (exerciseType === 'chords' && chordQuestion) {
+				const midis = chordQuestion.playedNotes.map((n) => n.midi);
+				for (let i = 0; i < midis.length; i++) {
+					activeNoteTimers.push(setTimeout(() => { activeNoteMidi = midis[i]; }, i * 500));
+				}
+				const strumTime = midis.length * 500 + 200;
+				activeNoteTimers.push(setTimeout(() => { activeNoteMidi = null; }, strumTime));
 				const { playChordPattern } = await import('$lib/audio/engine');
 				await playChordPattern(chordQuestion.noteStrings);
 				const totalTime = chordQuestion.noteStrings.length * 500 + 200 + chordQuestion.noteStrings.length * 40;
-				setTimeout(() => { isPlaying = false; }, totalTime + 200);
+				setTimeout(() => { isPlaying = false; clearActiveNote(); }, totalTime + 200);
 			} else {
 				isPlaying = false;
 			}
@@ -169,28 +192,59 @@
 	async function previewInterval(interval: Interval) {
 		if (isPlaying || !intervalQuestion) return;
 		isPlaying = true;
+		const rootMidi = intervalQuestion.rootMidi;
+		const targetMidi = rootMidi + interval.semitones;
+		if (hasAnswered) {
+			previewHighlights = [
+				{ midi: rootMidi, role: 'root' },
+				{ midi: targetMidi, role: 'interval' }
+			];
+			clearActiveNote();
+			activeNoteMidi = rootMidi;
+			activeNoteTimers.push(setTimeout(() => { activeNoteMidi = targetMidi; }, 500));
+			activeNoteTimers.push(setTimeout(() => { activeNoteMidi = rootMidi; }, 1200));
+			activeNoteTimers.push(setTimeout(() => { activeNoteMidi = null; }, 1300));
+		}
 		try {
-			const rootStr = noteToString(midiToNote(intervalQuestion.rootMidi));
-			const targetStr = noteToString(midiToNote(intervalQuestion.rootMidi + interval.semitones));
+			const rootStr = noteToString(midiToNote(rootMidi));
+			const targetStr = noteToString(midiToNote(targetMidi));
 			const { playIntervalPattern } = await import('$lib/audio/engine');
 			await playIntervalPattern(rootStr, targetStr);
-			setTimeout(() => { isPlaying = false; }, 1400);
+			setTimeout(() => { isPlaying = false; previewHighlights = null; clearActiveNote(); }, 1400);
 		} catch {
 			isPlaying = false;
+			previewHighlights = null;
+			clearActiveNote();
 		}
 	}
 
 	async function previewChord(quality: ChordQuality) {
 		if (isPlaying || !chordQuestion) return;
 		isPlaying = true;
+		const rootMidi = chordQuestion.rootMidi;
+		const midis = quality.intervals.map((i) => rootMidi + i);
+		if (hasAnswered) {
+			previewHighlights = quality.intervals.map((i) => ({
+				midi: rootMidi + i,
+				role: i === 0 ? 'root' as const : 'interval' as const
+			}));
+			clearActiveNote();
+			for (let i = 0; i < midis.length; i++) {
+				activeNoteTimers.push(setTimeout(() => { activeNoteMidi = midis[i]; }, i * 500));
+			}
+			const strumTime = midis.length * 500 + 200;
+			activeNoteTimers.push(setTimeout(() => { activeNoteMidi = null; }, strumTime));
+		}
 		try {
-			const notes = quality.intervals.map((i) => noteToString(midiToNote(chordQuestion!.rootMidi + i)));
+			const notes = midis.map((m) => noteToString(midiToNote(m)));
 			const { playChordPattern } = await import('$lib/audio/engine');
 			await playChordPattern(notes);
-			const totalTime = notes.length * 500 + 200 + notes.length * 40;
-			setTimeout(() => { isPlaying = false; }, totalTime + 200);
+			const totalTime = midis.length * 500 + 200 + midis.length * 40;
+			setTimeout(() => { isPlaying = false; previewHighlights = null; clearActiveNote(); }, totalTime + 200);
 		} catch {
 			isPlaying = false;
+			previewHighlights = null;
+			clearActiveNote();
 		}
 	}
 
@@ -521,6 +575,6 @@
 
 	<!-- Fretboard -->
 	<section class="shrink-0 border-t border-gray-800 bg-gray-900/50 py-4">
-		<Fretboard {highlights} {mutedStrings} />
+		<Fretboard {highlights} {mutedStrings} {activeNoteMidi} />
 	</section>
 </div>

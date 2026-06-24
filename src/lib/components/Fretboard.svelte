@@ -12,7 +12,7 @@
 		stringIndex: number;
 	}
 
-	let { highlights = [], mutedStrings = [] }: { highlights?: HighlightedNote[]; mutedStrings?: MutedString[] } = $props();
+	let { highlights = [], mutedStrings = [], activeNoteMidi = null as number | null }: { highlights?: HighlightedNote[]; mutedStrings?: MutedString[]; activeNoteMidi?: number | null } = $props();
 
 	const STRING_COUNT = 6;
 	const FRET_COUNT = 12;
@@ -88,6 +88,7 @@
 								<div class="relative z-10 text-sm font-bold text-gray-500">X</div>
 							{:else}
 								<!-- Note dot -->
+								{@const isActive = highlight !== null && highlight !== 'ghost' && activeNoteMidi !== null && note.midi === activeNoteMidi}
 								<div
 									class="relative z-10 flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold transition-all
 										{highlight === 'root'
@@ -96,7 +97,8 @@
 												? 'bg-sky-500 text-black'
 												: highlight === 'ghost'
 													? 'bg-gray-600/40 text-gray-400 border border-gray-500'
-													: 'bg-transparent text-transparent group-hover:bg-gray-600 group-hover:text-gray-200'}"
+													: 'bg-transparent text-transparent group-hover:bg-gray-600 group-hover:text-gray-200'}
+										{isActive ? 'ring-2 ring-yellow-300 ring-offset-1 ring-offset-gray-900' : ''}"
 								>
 									{note.name}
 								</div>
