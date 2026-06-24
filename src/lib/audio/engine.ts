@@ -1,6 +1,6 @@
 import * as Tone from 'tone';
 
-const POOL_SIZE = 4;
+const POOL_SIZE = 6;
 let synthPool: Tone.PluckSynth[] = [];
 let nextSynth = 0;
 

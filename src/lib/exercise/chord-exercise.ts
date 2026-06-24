@@ -37,6 +37,21 @@ function selectPlayedNotes(voicing: AbsoluteVoicing): AbsoluteStringNote[] {
 	}
 
 	selected.sort((a, b) => a.stringIndex - b.stringIndex);
+
+	const root = selected.find((n) => n.isRoot);
+	if (root) {
+		const highest = selected.reduce((a, b) => (a.midi > b.midi ? a : b));
+		if (Math.floor(highest.midi / 12) !== Math.floor(root.midi / 12)) {
+			const rootOctave = sounded.find(
+				(n) => n.pitchClass === root.pitchClass && n.midi > root.midi
+			);
+			if (rootOctave && rootOctave.midi < highest.midi && !selected.some((n) => n.midi === rootOctave.midi)) {
+				selected.push(rootOctave);
+				selected.sort((a, b) => a.stringIndex - b.stringIndex);
+			}
+		}
+	}
+
 	return selected;
 }
 

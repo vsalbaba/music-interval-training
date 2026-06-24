@@ -83,7 +83,7 @@ export const CAGED_SHAPES: ChordShape[] = [
 	// Root on string 1 (A) at fret 3
 	{ family: 'C', quality: 'Major', frets: [null, 3, 2, 0, 1, 0], rootStringIndex: 1 },
 	{ family: 'C', quality: 'Minor', frets: [null, 3, 1, 0, 1, 3], rootStringIndex: 1 },
-	{ family: 'C', quality: 'Diminished', frets: [null, 3, 1, null, 4, 2], rootStringIndex: 1 },
+	{ family: 'C', quality: 'Diminished', frets: [null, 4, 2, 0, null, null], rootStringIndex: 1 },
 	{ family: 'C', quality: 'Augmented', frets: [null, 3, 2, 1, 1, 0], rootStringIndex: 1 },
 	{ family: 'C', quality: 'Sus2', frets: [null, 3, 0, 0, 1, null], rootStringIndex: 1 },
 	{ family: 'C', quality: 'Sus4', frets: [null, 3, 3, 0, 1, 1], rootStringIndex: 1 },

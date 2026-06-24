@@ -6,6 +6,7 @@
 	import { generateQuestion, type IntervalQuestion } from '$lib/exercise/interval-exercise';
 	import { CHORD_DIFFICULTIES, type ChordQuality, type ChordDifficulty } from '$lib/music/chords';
 	import { generateChordQuestion, type ChordQuestion } from '$lib/exercise/chord-exercise';
+	import { midiToNote, noteToString } from '$lib/music/notes';
 	import { recordAnswer, getAccuracy, getOverallStats, clearStats, type AccuracyEntry } from '$lib/stats/store';
 
 	type View = 'exercise' | 'stats';
@@ -163,6 +164,34 @@
 		score.total++;
 		if (isCorrect) score.correct++;
 		recordAnswer('chord', chordQuestion.quality.name, isCorrect);
+	}
+
+	async function previewInterval(interval: Interval) {
+		if (isPlaying || !intervalQuestion) return;
+		isPlaying = true;
+		try {
+			const rootStr = noteToString(midiToNote(intervalQuestion.rootMidi));
+			const targetStr = noteToString(midiToNote(intervalQuestion.rootMidi + interval.semitones));
+			const { playIntervalPattern } = await import('$lib/audio/engine');
+			await playIntervalPattern(rootStr, targetStr);
+			setTimeout(() => { isPlaying = false; }, 1400);
+		} catch {
+			isPlaying = false;
+		}
+	}
+
+	async function previewChord(quality: ChordQuality) {
+		if (isPlaying || !chordQuestion) return;
+		isPlaying = true;
+		try {
+			const notes = quality.intervals.map((i) => noteToString(midiToNote(chordQuestion!.rootMidi + i)));
+			const { playChordPattern } = await import('$lib/audio/engine');
+			await playChordPattern(notes);
+			const totalTime = notes.length * 500 + 200 + notes.length * 40;
+			setTimeout(() => { isPlaying = false; }, totalTime + 200);
+		} catch {
+			isPlaying = false;
+		}
 	}
 
 	function showStats() {
@@ -383,43 +412,79 @@
 						{#each currentIntervalDiff.intervals as interval}
 							{@const isSelected = selectedIntervalAnswer?.semitones === interval.semitones}
 							{@const isAnswer = selectedIntervalAnswer !== null && intervalQuestion?.interval.semitones === interval.semitones}
-							<button
-								class="rounded-lg px-5 py-3 text-sm font-semibold transition-colors
-									{isSelected && isCorrect
-										? 'bg-green-600 text-white'
-										: isSelected && !isCorrect
-											? 'bg-red-600 text-white'
-											: isAnswer
-												? 'bg-green-600/50 text-white'
-												: hasAnswered
-													? 'bg-gray-800 text-gray-500 cursor-default'
-													: 'bg-gray-700 text-white hover:bg-gray-600 cursor-pointer'}"
-								onclick={() => submitIntervalAnswer(interval)}
-								disabled={hasAnswered}
-							>
-								{interval.name}
-							</button>
+							<div class="flex">
+								<button
+									class="rounded-l-lg border-r border-black/20 px-2 py-3 text-xs transition-colors
+										{isSelected && isCorrect
+											? 'bg-green-700 text-white'
+											: isSelected && !isCorrect
+												? 'bg-red-700 text-white'
+												: isAnswer
+													? 'bg-green-700/50 text-white'
+													: hasAnswered
+														? 'bg-gray-800/80 text-gray-600'
+														: 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white cursor-pointer'}"
+									onclick={() => previewInterval(interval)}
+									disabled={isPlaying}
+								>
+									{isPlaying ? '...' : '▶'}
+								</button>
+								<button
+									class="rounded-r-lg px-4 py-3 text-sm font-semibold transition-colors
+										{isSelected && isCorrect
+											? 'bg-green-600 text-white'
+											: isSelected && !isCorrect
+												? 'bg-red-600 text-white'
+												: isAnswer
+													? 'bg-green-600/50 text-white'
+													: hasAnswered
+														? 'bg-gray-800 text-gray-500 cursor-default'
+														: 'bg-gray-700 text-white hover:bg-gray-600 cursor-pointer'}"
+									onclick={() => submitIntervalAnswer(interval)}
+									disabled={hasAnswered}
+								>
+									{interval.name}
+								</button>
+							</div>
 						{/each}
 					{:else}
 						{#each currentChordDiff.qualities as quality}
 							{@const isSelected = selectedChordAnswer?.name === quality.name}
 							{@const isAnswer = selectedChordAnswer !== null && chordQuestion?.quality.name === quality.name}
-							<button
-								class="rounded-lg px-5 py-3 text-sm font-semibold transition-colors
-									{isSelected && isCorrect
-										? 'bg-green-600 text-white'
-										: isSelected && !isCorrect
-											? 'bg-red-600 text-white'
-											: isAnswer
-												? 'bg-green-600/50 text-white'
-												: hasAnswered
-													? 'bg-gray-800 text-gray-500 cursor-default'
-													: 'bg-gray-700 text-white hover:bg-gray-600 cursor-pointer'}"
-								onclick={() => submitChordAnswer(quality)}
-								disabled={hasAnswered}
-							>
-								{quality.name}
-							</button>
+							<div class="flex">
+								<button
+									class="rounded-l-lg border-r border-black/20 px-2 py-3 text-xs transition-colors
+										{isSelected && isCorrect
+											? 'bg-green-700 text-white'
+											: isSelected && !isCorrect
+												? 'bg-red-700 text-white'
+												: isAnswer
+													? 'bg-green-700/50 text-white'
+													: hasAnswered
+														? 'bg-gray-800/80 text-gray-600'
+														: 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white cursor-pointer'}"
+									onclick={() => previewChord(quality)}
+									disabled={isPlaying}
+								>
+									{isPlaying ? '...' : '▶'}
+								</button>
+								<button
+									class="rounded-r-lg px-4 py-3 text-sm font-semibold transition-colors
+										{isSelected && isCorrect
+											? 'bg-green-600 text-white'
+											: isSelected && !isCorrect
+												? 'bg-red-600 text-white'
+												: isAnswer
+													? 'bg-green-600/50 text-white'
+													: hasAnswered
+														? 'bg-gray-800 text-gray-500 cursor-default'
+														: 'bg-gray-700 text-white hover:bg-gray-600 cursor-pointer'}"
+									onclick={() => submitChordAnswer(quality)}
+									disabled={hasAnswered}
+								>
+									{quality.name}
+								</button>
+							</div>
 						{/each}
 					{/if}
 				</section>
