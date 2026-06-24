@@ -1,25 +1,82 @@
-import { midiToNote, noteToString, STANDARD_TUNING } from '$lib/music/notes';
+import { midiToNote, noteToString } from '$lib/music/notes';
 import { type ChordQuality } from '$lib/music/chords';
-
-const FRETBOARD_MIN_MIDI = Math.min(...STANDARD_TUNING);
-const FRETBOARD_MAX_MIDI = Math.max(...STANDARD_TUNING) + 12;
+import {
+	CAGED_SHAPES,
+	getValidOffsets,
+	applyOffset,
+	type ChordShape,
+	type AbsoluteVoicing,
+	type AbsoluteStringNote
+} from '$lib/music/caged-shapes';
 
 export interface ChordQuestion {
 	rootMidi: number;
 	chordMidis: number[];
 	quality: ChordQuality;
 	noteStrings: string[];
+	shape: ChordShape;
+	offset: number;
+	voicing: AbsoluteVoicing;
+	playedNotes: AbsoluteStringNote[];
+}
+
+function selectPlayedNotes(voicing: AbsoluteVoicing): AbsoluteStringNote[] {
+	const sounded = voicing.strings.filter((s): s is AbsoluteStringNote => s !== null);
+
+	const byPitchClass = new Map<number, AbsoluteStringNote[]>();
+	for (const note of sounded) {
+		const group = byPitchClass.get(note.pitchClass) ?? [];
+		group.push(note);
+		byPitchClass.set(note.pitchClass, group);
+	}
+
+	const selected: AbsoluteStringNote[] = [];
+	for (const [, notes] of byPitchClass) {
+		notes.sort((a, b) => a.stringIndex - b.stringIndex);
+		selected.push(notes[0]);
+	}
+
+	selected.sort((a, b) => a.stringIndex - b.stringIndex);
+	return selected;
 }
 
 export function generateChordQuestion(qualities: ChordQuality[]): ChordQuestion {
-	const quality = qualities[Math.floor(Math.random() * qualities.length)];
-	const maxInterval = Math.max(...quality.intervals);
-	const maxRoot = FRETBOARD_MAX_MIDI - maxInterval;
-	const rootMidi =
-		FRETBOARD_MIN_MIDI + Math.floor(Math.random() * (maxRoot - FRETBOARD_MIN_MIDI + 1));
+	let quality: ChordQuality;
+	let matchingShapes: ChordShape[];
 
-	const chordMidis = quality.intervals.map((i) => rootMidi + i);
-	const noteStrings = chordMidis.map((m) => noteToString(midiToNote(m)));
+	// Pick a quality that has shapes available
+	const shuffled = [...qualities].sort(() => Math.random() - 0.5);
+	quality = shuffled[0];
+	matchingShapes = CAGED_SHAPES.filter((s) => s.quality === quality.name);
+	for (const q of shuffled) {
+		const shapes = CAGED_SHAPES.filter((s) => s.quality === q.name);
+		if (shapes.length > 0) {
+			quality = q;
+			matchingShapes = shapes;
+			break;
+		}
+	}
 
-	return { rootMidi, chordMidis, quality, noteStrings };
+	const shape = matchingShapes[Math.floor(Math.random() * matchingShapes.length)];
+
+	const offsets = getValidOffsets(shape);
+	const offset = offsets[Math.floor(Math.random() * offsets.length)];
+
+	const voicing = applyOffset(shape, offset);
+	const playedNotes = selectPlayedNotes(voicing);
+
+	const rootNote = playedNotes.find((n) => n.isRoot) ?? playedNotes[0];
+	const chordMidis = playedNotes.map((n) => n.midi);
+	const noteStrings = playedNotes.map((n) => noteToString(midiToNote(n.midi)));
+
+	return {
+		rootMidi: rootNote.midi,
+		chordMidis,
+		quality,
+		noteStrings,
+		shape,
+		offset,
+		voicing,
+		playedNotes
+	};
 }

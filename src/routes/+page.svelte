@@ -31,7 +31,8 @@
 	let chordAccuracy: AccuracyEntry[] = $state([]);
 	let overallStats = $state({ total: 0, correct: 0, percentage: 0 });
 
-	type HighlightedNote = { midi: number; role: 'root' | 'interval' };
+	type HighlightedNote = { midi: number; role: 'root' | 'interval' | 'ghost'; stringIndex?: number; fret?: number };
+	type MutedString = { stringIndex: number };
 
 	let highlights: HighlightedNote[] = $derived.by(() => {
 		if (exerciseType === 'intervals') {
@@ -42,11 +43,41 @@
 			];
 		} else {
 			if (!chordQuestion || selectedChordAnswer === null) return [];
-			return chordQuestion.chordMidis.map((midi, i) => ({
-				midi,
-				role: (i === 0 ? 'root' : 'interval') as 'root' | 'interval'
-			}));
+
+			const result: HighlightedNote[] = [];
+			const playedSet = new Set(chordQuestion.playedNotes.map((n) => `${n.stringIndex}-${n.fret}`));
+
+			for (const note of chordQuestion.playedNotes) {
+				result.push({
+					midi: note.midi,
+					role: note.isRoot ? 'root' : 'interval',
+					stringIndex: note.stringIndex,
+					fret: note.fret
+				});
+			}
+
+			for (const stringNote of chordQuestion.voicing.strings) {
+				if (stringNote === null) continue;
+				const key = `${stringNote.stringIndex}-${stringNote.fret}`;
+				if (!playedSet.has(key)) {
+					result.push({
+						midi: stringNote.midi,
+						role: 'ghost',
+						stringIndex: stringNote.stringIndex,
+						fret: stringNote.fret
+					});
+				}
+			}
+
+			return result;
 		}
+	});
+
+	let mutedStrings: MutedString[] = $derived.by(() => {
+		if (exerciseType !== 'chords' || !chordQuestion || selectedChordAnswer === null) return [];
+		return chordQuestion.voicing.strings
+			.map((s, i) => (s === null ? { stringIndex: i } : null))
+			.filter((m): m is MutedString => m !== null);
 	});
 
 	let hasAnswered = $derived(
@@ -314,6 +345,11 @@
 							Wrong -- it was {correctAnswerName}
 						{/if}
 					</div>
+					{#if exerciseType === 'chords' && chordQuestion}
+						<div class="mt-1 text-xs text-gray-500">
+							{chordQuestion.shape.family}-shape at fret {chordQuestion.offset}
+						</div>
+					{/if}
 				{/if}
 			</section>
 
@@ -368,6 +404,6 @@
 
 	<!-- Fretboard -->
 	<section class="shrink-0 border-t border-gray-800 bg-gray-900/50 py-4">
-		<Fretboard {highlights} />
+		<Fretboard {highlights} {mutedStrings} />
 	</section>
 </div>

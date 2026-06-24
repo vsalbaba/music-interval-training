@@ -3,10 +3,16 @@
 
 	interface HighlightedNote {
 		midi: number;
-		role: 'root' | 'interval';
+		role: 'root' | 'interval' | 'ghost';
+		stringIndex?: number;
+		fret?: number;
 	}
 
-	let { highlights = [] }: { highlights?: HighlightedNote[] } = $props();
+	interface MutedString {
+		stringIndex: number;
+	}
+
+	let { highlights = [], mutedStrings = [] }: { highlights?: HighlightedNote[]; mutedStrings?: MutedString[] } = $props();
 
 	const STRING_COUNT = 6;
 	const FRET_COUNT = 12;
@@ -15,9 +21,18 @@
 
 	const STRING_LABELS = ['E', 'A', 'D', 'G', 'B', 'e'];
 
-	function getHighlight(midi: number): 'root' | 'interval' | null {
-		const h = highlights.find((h) => h.midi === midi);
-		return h ? h.role : null;
+	function getHighlight(stringIndex: number, fret: number, midi: number): 'root' | 'interval' | 'ghost' | null {
+		const exactMatch = highlights.find(
+			(h) => h.stringIndex !== undefined && h.stringIndex === stringIndex && h.fret === fret
+		);
+		if (exactMatch) return exactMatch.role;
+
+		const midiMatch = highlights.find((h) => h.stringIndex === undefined && h.midi === midi);
+		return midiMatch ? midiMatch.role : null;
+	}
+
+	function isMuted(stringIndex: number): boolean {
+		return mutedStrings.some((m) => m.stringIndex === stringIndex);
 	}
 
 	async function handleClick(stringIndex: number, fret: number) {
@@ -54,7 +69,8 @@
 				<div class="flex flex-1">
 					{#each { length: FRET_COUNT + 1 } as _, fret}
 						{@const note = getFretboardNote(displayIndex, fret)}
-						{@const highlight = getHighlight(note.midi)}
+						{@const highlight = getHighlight(displayIndex, fret, note.midi)}
+						{@const muted = isMuted(displayIndex) && fret === 0}
 						<button
 							class="group relative flex flex-1 cursor-pointer items-center justify-center
 								{fret === 0 ? 'border-r-4 border-r-gray-300' : 'border-r border-r-gray-600'}
@@ -67,17 +83,24 @@
 								style="height: {1 + (5 - displayIndex) * 0.4}px;"
 							></div>
 
-							<!-- Note dot -->
-							<div
-								class="relative z-10 flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold transition-all
-									{highlight === 'root'
-										? 'bg-amber-500 text-black'
-										: highlight === 'interval'
-											? 'bg-sky-500 text-black'
-											: 'bg-transparent text-transparent group-hover:bg-gray-600 group-hover:text-gray-200'}"
-							>
-								{note.name}
-							</div>
+							{#if muted}
+								<!-- Muted string X marker -->
+								<div class="relative z-10 text-sm font-bold text-gray-500">X</div>
+							{:else}
+								<!-- Note dot -->
+								<div
+									class="relative z-10 flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold transition-all
+										{highlight === 'root'
+											? 'bg-amber-500 text-black'
+											: highlight === 'interval'
+												? 'bg-sky-500 text-black'
+												: highlight === 'ghost'
+													? 'bg-gray-600/40 text-gray-400 border border-gray-500'
+													: 'bg-transparent text-transparent group-hover:bg-gray-600 group-hover:text-gray-200'}"
+								>
+									{note.name}
+								</div>
+							{/if}
 						</button>
 					{/each}
 				</div>
