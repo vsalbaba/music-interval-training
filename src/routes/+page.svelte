@@ -8,6 +8,10 @@
 	import { generateChordQuestion, type ChordQuestion } from '$lib/exercise/chord-exercise';
 	import { midiToNote, noteToString } from '$lib/music/notes';
 	import { recordAnswer, getAccuracy, getOverallStats, clearStats, type AccuracyEntry } from '$lib/stats/store';
+	import { locale } from '$lib/i18n/locale';
+	import { getIntervalName, getChordName } from '$lib/i18n/translations';
+
+	let currentLocale = $derived($locale);
 
 	type View = 'exercise' | 'stats';
 	let currentView: View = $state('exercise');
@@ -92,8 +96,10 @@
 	);
 
 	let correctAnswerName = $derived.by(() => {
-		if (exerciseType === 'intervals' && intervalQuestion) return intervalQuestion.interval.name;
-		if (exerciseType === 'chords' && chordQuestion) return chordQuestion.quality.name;
+		if (exerciseType === 'intervals' && intervalQuestion)
+			return getIntervalName(currentLocale, intervalQuestion.interval.semitones);
+		if (exerciseType === 'chords' && chordQuestion)
+			return getChordName(currentLocale, chordQuestion.quality.shortName);
 		return '';
 	});
 
@@ -497,7 +503,7 @@
 									onclick={() => submitIntervalAnswer(interval)}
 									disabled={hasAnswered}
 								>
-									{interval.name}
+									{getIntervalName(currentLocale, interval.semitones)}
 								</button>
 							</div>
 						{/each}
@@ -536,7 +542,7 @@
 									onclick={() => submitChordAnswer(quality)}
 									disabled={hasAnswered}
 								>
-									{quality.name}
+									{getChordName(currentLocale, quality.shortName)}
 								</button>
 							</div>
 						{/each}
