@@ -28,6 +28,7 @@ export interface ProgressionQuestion {
 	chordNames: string[];
 	voicings: ProgressionChordVoicing[];
 	options: Progression[];
+	optionVoicings: Record<string, ProgressionChordVoicing[]>;
 }
 
 const KEY_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -98,12 +99,18 @@ export function generateProgressionQuestion(difficulty: ProgressionDifficulty): 
 	const distractors = selectDistractors(progression, pool, 3);
 	const options = [progression, ...distractors].sort(() => Math.random() - 0.5);
 
+	const optionVoicings: Record<string, ProgressionChordVoicing[]> = {};
+	for (const opt of options) {
+		optionVoicings[opt.nashville] = buildVoicings(opt.degrees, family, offset);
+	}
+
 	return {
 		progression,
 		keyPitchClass,
 		keyName,
 		chordNames,
 		voicings,
-		options
+		options,
+		optionVoicings
 	};
 }

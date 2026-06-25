@@ -52,6 +52,7 @@
 
 	function newQuestion(autoplay = false) {
 		isCorrect = null;
+		isPlaying = false;
 		previewHighlights = null;
 		clearActiveNote();
 		question = generateProgressionQuestion(difficulty);
@@ -127,6 +128,45 @@
 		}
 	}
 
+	async function previewProgression(option: Progression) {
+		if (isPlaying || !question) return;
+		isPlaying = true;
+		clearActiveNote();
+
+		const voicings = question.optionVoicings[option.nashville];
+		if (!voicings) { isPlaying = false; return; }
+
+		const chordDuration = 1200;
+
+		if (hasAnswered) {
+			for (let c = 0; c < voicings.length; c++) {
+				const v = voicings[c];
+				activeNoteTimers.push(setTimeout(() => {
+					previewHighlights = v.notes.map(n => ({
+						midi: n.midi,
+						role: (n.isRoot ? 'root' : 'interval') as 'root' | 'interval',
+						stringIndex: n.stringIndex,
+						fret: n.fret
+					}));
+				}, c * chordDuration));
+			}
+			activeNoteTimers.push(setTimeout(() => {
+				previewHighlights = null;
+			}, voicings.length * chordDuration));
+		}
+
+		try {
+			const chords = voicings.map(v => v.noteStrings);
+			await audioEngine!.playProgressionPattern(chords);
+			const totalTime = chords.length * chordDuration;
+			setTimeout(() => { isPlaying = false; previewHighlights = null; }, totalTime + 200);
+		} catch {
+			isPlaying = false;
+			previewHighlights = null;
+			clearActiveNote();
+		}
+	}
+
 	onMount(() => {
 		newQuestion();
 	});
@@ -198,22 +238,40 @@
 		{#each question.options as option}
 			{@const isSelected = selectedAnswer?.nashville === option.nashville}
 			{@const isAnswer = selectedAnswer !== null && question.progression.nashville === option.nashville}
-			<button
-				class="rounded-lg px-4 py-3 text-sm font-semibold transition-colors
-					{isSelected && isCorrect
-						? 'bg-green-600 text-white'
-						: isSelected && !isCorrect
-							? 'bg-red-600 text-white'
-							: isAnswer
-								? 'bg-green-600/50 text-white'
-								: hasAnswered
-									? 'bg-gray-800 text-gray-500 cursor-default'
-									: 'bg-gray-700 text-white hover:bg-gray-600 cursor-pointer'}"
-				onclick={() => submitAnswer(option)}
-				disabled={hasAnswered}
-			>
-				{option.nashville}
-			</button>
+			<div class="flex">
+				<button
+					class="rounded-l-lg border-r border-black/20 px-2 py-3 text-xs transition-colors
+						{isSelected && isCorrect
+							? 'bg-green-700 text-white'
+							: isSelected && !isCorrect
+								? 'bg-red-700 text-white'
+								: isAnswer
+									? 'bg-green-700/50 text-white'
+									: hasAnswered
+										? 'bg-gray-800/80 text-gray-600'
+										: 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white cursor-pointer'}"
+					onclick={() => previewProgression(option)}
+					disabled={isPlaying}
+				>
+					{isPlaying ? '...' : '▶'}
+				</button>
+				<button
+					class="rounded-r-lg px-4 py-3 text-sm font-semibold transition-colors
+						{isSelected && isCorrect
+							? 'bg-green-600 text-white'
+							: isSelected && !isCorrect
+								? 'bg-red-600 text-white'
+								: isAnswer
+									? 'bg-green-600/50 text-white'
+									: hasAnswered
+										? 'bg-gray-800 text-gray-500 cursor-default'
+										: 'bg-gray-700 text-white hover:bg-gray-600 cursor-pointer'}"
+					onclick={() => submitAnswer(option)}
+					disabled={hasAnswered}
+				>
+					{option.nashville}
+				</button>
+			</div>
 		{/each}
 	{/if}
 </section>
