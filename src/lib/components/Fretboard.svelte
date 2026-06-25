@@ -3,6 +3,7 @@
 	import { getFretboardNote, noteToString } from '$lib/music/notes';
 	import { getNoteNames, getStringLabels } from '$lib/i18n/translations';
 	import { locale } from '$lib/i18n/locale';
+	import type { HighlightedNote, MutedString } from '$lib/types/fretboard';
 
 	let noteNames = $derived(getNoteNames($locale));
 	let stringLabels = $derived(getStringLabels($locale));
@@ -27,17 +28,6 @@
 				}, 2000);
 			}
 		}, 500);
-	}
-
-	interface HighlightedNote {
-		midi: number;
-		role: 'root' | 'interval' | 'ghost';
-		stringIndex?: number;
-		fret?: number;
-	}
-
-	interface MutedString {
-		stringIndex: number;
 	}
 
 	let { highlights = [], mutedStrings = [], activeNoteMidi = null as number | null }: { highlights?: HighlightedNote[]; mutedStrings?: MutedString[]; activeNoteMidi?: number | null } = $props();
