@@ -10,7 +10,7 @@
 	let audioEngine: typeof import('$lib/audio/engine') | null = null;
 	onMount(async () => { audioEngine = await import('$lib/audio/engine'); });
 
-	let tappedNotes: Map<string, { fading: boolean }> = $state(new Map());
+	let tappedNotes: Record<string, { fading: boolean }> = $state({});
 
 	function tapKey(stringIndex: number, fret: number) {
 		return `${stringIndex}-${fret}`;
@@ -18,13 +18,12 @@
 
 	function showTappedNote(stringIndex: number, fret: number) {
 		const key = tapKey(stringIndex, fret);
-		tappedNotes.set(key, { fading: false });
+		tappedNotes[key] = { fading: false };
 		setTimeout(() => {
-			const entry = tappedNotes.get(key);
-			if (entry) {
-				entry.fading = true;
+			if (tappedNotes[key]) {
+				tappedNotes[key] = { fading: true };
 				setTimeout(() => {
-					tappedNotes.delete(key);
+					delete tappedNotes[key];
 				}, 2000);
 			}
 		}, 500);
@@ -69,7 +68,7 @@
 	}
 </script>
 
-<div class="w-full select-none px-4 py-3">
+<div class="w-full touch-manipulation select-none px-4 py-3">
 	<!-- Fret numbers -->
 	<div class="mb-1 flex">
 		<div class="w-10 shrink-0"></div>
@@ -116,7 +115,7 @@
 							{:else}
 								<!-- Note dot -->
 								{@const isActive = highlight !== null && highlight !== 'ghost' && activeNoteMidi !== null && note.midi === activeNoteMidi}
-								{@const tapState = tappedNotes.get(tapKey(displayIndex, fret))}
+								{@const tapState = tappedNotes[tapKey(displayIndex, fret)]}
 								<div
 									class="relative z-10 flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold transition-all
 										{highlight === 'root'
