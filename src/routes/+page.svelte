@@ -7,7 +7,7 @@
 	import { CHORD_DIFFICULTIES, type ChordQuality, type ChordDifficulty } from '$lib/music/chords';
 	import { generateChordQuestion, getChordVoicingNotes, type ChordQuestion } from '$lib/exercise/chord-exercise';
 	import { generateProgressionQuestion, type ProgressionQuestion } from '$lib/exercise/progression-exercise';
-	import { type Progression, resolveProgressionChordNames } from '$lib/music/progressions';
+	import { type Progression, type ProgressionDifficulty, PROGRESSION_DIFFICULTIES, resolveProgressionChordNames } from '$lib/music/progressions';
 	import { midiToNote, noteToString } from '$lib/music/notes';
 	import { recordAnswer, getAccuracy, getOverallStats, clearStats, type AccuracyEntry } from '$lib/stats/store';
 	import { locale } from '$lib/i18n/locale';
@@ -23,6 +23,7 @@
 	let exerciseType: ExerciseType = $state('intervals');
 	let intervalDifficulty: IntervalDifficulty = $state('easy');
 	let chordDifficulty: ChordDifficulty = $state('triads');
+	let progressionDifficulty: ProgressionDifficulty = $state('easy');
 
 	let currentIntervalDiff = $derived(INTERVAL_DIFFICULTIES.find((d) => d.key === intervalDifficulty)!);
 	let currentChordDiff = $derived(CHORD_DIFFICULTIES.find((d) => d.key === chordDifficulty)!);
@@ -140,6 +141,12 @@
 		newQuestion();
 	}
 
+	function switchProgressionDifficulty(diff: ProgressionDifficulty) {
+		progressionDifficulty = diff;
+		score = { correct: 0, total: 0 };
+		newQuestion();
+	}
+
 	function clearActiveNote() {
 		for (const t of activeNoteTimers) clearTimeout(t);
 		activeNoteTimers = [];
@@ -157,7 +164,7 @@
 			chordQuestion = generateChordQuestion(currentChordDiff.qualities);
 			selectedChordAnswer = null;
 		} else {
-			progressionQuestion = generateProgressionQuestion('easy');
+			progressionQuestion = generateProgressionQuestion(progressionDifficulty);
 			selectedProgressionAnswer = null;
 		}
 		if (autoplay) playCurrentQuestion();
@@ -491,6 +498,16 @@
 								class="rounded px-3 py-1 text-xs font-medium transition-colors
 									{chordDifficulty === diff.key ? 'bg-indigo-500/60 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}"
 								onclick={() => switchChordDifficulty(diff.key)}
+							>
+								{t(currentLocale, `ui.difficulty.${diff.key}`)}
+							</button>
+						{/each}
+					{:else if exerciseType === 'progressions'}
+						{#each PROGRESSION_DIFFICULTIES as diff}
+							<button
+								class="rounded px-3 py-1 text-xs font-medium transition-colors
+									{progressionDifficulty === diff.key ? 'bg-indigo-500/60 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}"
+								onclick={() => switchProgressionDifficulty(diff.key)}
 							>
 								{t(currentLocale, `ui.difficulty.${diff.key}`)}
 							</button>

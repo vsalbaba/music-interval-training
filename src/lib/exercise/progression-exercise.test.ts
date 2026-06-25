@@ -2,6 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { generateProgressionQuestion, selectDistractors } from './progression-exercise';
 import {
 	EASY_PROGRESSIONS,
+	MEDIUM_PROGRESSIONS,
+	HARD_PROGRESSIONS,
+	PROGRESSION_DIFFICULTIES,
+	getProgressionPool,
 	degreeToChordName,
 	resolveProgressionChordNames,
 	getDegree,
@@ -165,5 +169,115 @@ describe('generateProgressionQuestion', () => {
 			const uniqueFamilies = new Set(families);
 			expect(uniqueFamilies.size).toBe(1);
 		}
+	});
+});
+
+describe('MEDIUM_PROGRESSIONS', () => {
+	it('has at least 4 progressions', () => {
+		expect(MEDIUM_PROGRESSIONS.length).toBeGreaterThanOrEqual(4);
+	});
+
+	it('each progression has songs', () => {
+		for (const prog of MEDIUM_PROGRESSIONS) {
+			expect(prog.songs.length).toBeGreaterThan(0);
+		}
+	});
+
+	it('each progression has a nashville string matching its degrees', () => {
+		for (const prog of MEDIUM_PROGRESSIONS) {
+			expect(prog.nashville).toBe(prog.degrees.join(' '));
+		}
+	});
+
+	it('all degrees are valid Nashville numerals', () => {
+		for (const prog of MEDIUM_PROGRESSIONS) {
+			for (const degree of prog.degrees) {
+				expect(getDegree(degree)).toBeDefined();
+			}
+		}
+	});
+});
+
+describe('HARD_PROGRESSIONS', () => {
+	it('has at least 2 progressions', () => {
+		expect(HARD_PROGRESSIONS.length).toBeGreaterThanOrEqual(2);
+	});
+
+	it('each progression has songs', () => {
+		for (const prog of HARD_PROGRESSIONS) {
+			expect(prog.songs.length).toBeGreaterThan(0);
+		}
+	});
+
+	it('all degrees are valid Nashville numerals', () => {
+		for (const prog of HARD_PROGRESSIONS) {
+			for (const degree of prog.degrees) {
+				expect(getDegree(degree)).toBeDefined();
+			}
+		}
+	});
+});
+
+describe('PROGRESSION_DIFFICULTIES', () => {
+	it('has 3 difficulty levels', () => {
+		expect(PROGRESSION_DIFFICULTIES).toHaveLength(3);
+	});
+
+	it('medium pool includes all easy progressions', () => {
+		const mediumPool = getProgressionPool('medium');
+		for (const prog of EASY_PROGRESSIONS) {
+			expect(mediumPool.some(p => p.nashville === prog.nashville)).toBe(true);
+		}
+	});
+
+	it('hard pool includes all easy and medium progressions', () => {
+		const hardPool = getProgressionPool('hard');
+		for (const prog of [...EASY_PROGRESSIONS, ...MEDIUM_PROGRESSIONS]) {
+			expect(hardPool.some(p => p.nashville === prog.nashville)).toBe(true);
+		}
+	});
+});
+
+describe('distractor selection across difficulty levels', () => {
+	it('easy distractors come only from easy pool', () => {
+		const easyPool = getProgressionPool('easy');
+		const correct = easyPool[0];
+		const distractors = selectDistractors(correct, easyPool, 3);
+		const easyNashvilles = new Set(EASY_PROGRESSIONS.map(p => p.nashville));
+		for (const d of distractors) {
+			expect(easyNashvilles.has(d.nashville)).toBe(true);
+		}
+	});
+
+	it('medium distractors come from easy + medium pools only', () => {
+		const mediumPool = getProgressionPool('medium');
+		const correct = MEDIUM_PROGRESSIONS[0];
+		const distractors = selectDistractors(correct, mediumPool, 3);
+		const allowedNashvilles = new Set([...EASY_PROGRESSIONS, ...MEDIUM_PROGRESSIONS].map(p => p.nashville));
+		for (const d of distractors) {
+			expect(allowedNashvilles.has(d.nashville)).toBe(true);
+		}
+	});
+
+	it('hard distractors never include progressions outside the hard pool', () => {
+		const hardPool = getProgressionPool('hard');
+		const hardNashvilles = new Set(hardPool.map(p => p.nashville));
+		const correct = HARD_PROGRESSIONS[0];
+		const distractors = selectDistractors(correct, hardPool, 3);
+		for (const d of distractors) {
+			expect(hardNashvilles.has(d.nashville)).toBe(true);
+		}
+	});
+
+	it('medium question generates valid question with 4 options', () => {
+		const q = generateProgressionQuestion('medium');
+		expect(q.options.length).toBe(4);
+		expect(q.options.map(o => o.nashville)).toContain(q.progression.nashville);
+	});
+
+	it('hard question generates valid question with 4 options', () => {
+		const q = generateProgressionQuestion('hard');
+		expect(q.options.length).toBe(4);
+		expect(q.options.map(o => o.nashville)).toContain(q.progression.nashville);
 	});
 });

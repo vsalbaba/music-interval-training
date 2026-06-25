@@ -20,7 +20,7 @@ export interface Progression {
 	songs: string[];
 }
 
-export type ProgressionDifficulty = 'easy';
+export type ProgressionDifficulty = 'easy' | 'medium' | 'hard';
 
 export const EASY_PROGRESSIONS: Progression[] = [
 	{
@@ -45,8 +45,61 @@ export const EASY_PROGRESSIONS: Progression[] = [
 	}
 ];
 
-export function getProgressionPool(_difficulty: ProgressionDifficulty): Progression[] {
-	return EASY_PROGRESSIONS;
+export const MEDIUM_PROGRESSIONS: Progression[] = [
+	{
+		degrees: ['I', 'V', 'vi', 'IV'],
+		nashville: 'I V vi IV',
+		songs: ['Let It Be', 'No Woman No Cry']
+	},
+	{
+		degrees: ['I', 'vi', 'IV', 'V'],
+		nashville: 'I vi IV V',
+		songs: ['Stand by Me', 'Every Breath You Take']
+	},
+	{
+		degrees: ['vi', 'IV', 'I', 'V'],
+		nashville: 'vi IV I V',
+		songs: ['Despacito', 'Numb']
+	},
+	{
+		degrees: ['I', 'IV', 'vi', 'V'],
+		nashville: 'I IV vi V',
+		songs: ['Africa', 'Take Me Home, Country Roads']
+	}
+];
+
+export const HARD_PROGRESSIONS: Progression[] = [
+	{
+		degrees: ['ii', 'V', 'I'],
+		nashville: 'ii V I',
+		songs: ['Fly Me to the Moon', 'Autumn Leaves']
+	},
+	{
+		degrees: ['I', 'vi', 'ii', 'V'],
+		nashville: 'I vi ii V',
+		songs: ['I Got Rhythm', 'Heart and Soul']
+	},
+	{
+		degrees: ['I', 'IV', 'V', 'IV'],
+		nashville: 'I IV V IV',
+		songs: ['Louie Louie', 'Wild Thing']
+	},
+	{
+		degrees: ['vi', 'IV', 'V', 'I'],
+		nashville: 'vi IV V I',
+		songs: ['Boulevard of Broken Dreams']
+	}
+];
+
+export const PROGRESSION_DIFFICULTIES: { key: ProgressionDifficulty; label: string; progressions: Progression[] }[] = [
+	{ key: 'easy', label: 'Easy', progressions: EASY_PROGRESSIONS },
+	{ key: 'medium', label: 'Medium', progressions: [...EASY_PROGRESSIONS, ...MEDIUM_PROGRESSIONS] },
+	{ key: 'hard', label: 'Hard', progressions: [...EASY_PROGRESSIONS, ...MEDIUM_PROGRESSIONS, ...HARD_PROGRESSIONS] }
+];
+
+export function getProgressionPool(difficulty: ProgressionDifficulty): Progression[] {
+	const config = PROGRESSION_DIFFICULTIES.find(d => d.key === difficulty);
+	return config?.progressions ?? EASY_PROGRESSIONS;
 }
 
 export function getDegree(roman: string): NashvilleDegree | undefined {
