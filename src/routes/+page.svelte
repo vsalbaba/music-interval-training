@@ -193,6 +193,10 @@
 				const totalTime = chordQuestion.noteStrings.length * 500 + 200 + chordQuestion.noteStrings.length * 40;
 				setTimeout(() => { isPlaying = false; clearActiveNote(); }, totalTime + 200);
 			} else if (exerciseType === 'progressions' && progressionQuestion) {
+				if (selectedProgressionAnswer !== null) {
+					await replayProgressionWithHighlights();
+					return;
+				}
 				const chords = progressionQuestion.voicings.map(v => v.noteStrings);
 				await audioEngine!.playProgressionPattern(chords);
 				const totalTime = chords.length * 1200;
@@ -230,6 +234,41 @@
 		score.total++;
 		if (isCorrect) score.correct++;
 		recordAnswer('progression', progressionQuestion.progression.nashville, isCorrect);
+		replayProgressionWithHighlights();
+	}
+
+	async function replayProgressionWithHighlights() {
+		if (!progressionQuestion || !audioEngine) return;
+		isPlaying = true;
+		clearActiveNote();
+		const voicings = progressionQuestion.voicings;
+		const chords = voicings.map(v => v.noteStrings);
+		const chordDuration = 1200;
+
+		for (let c = 0; c < voicings.length; c++) {
+			const v = voicings[c];
+			activeNoteTimers.push(setTimeout(() => {
+				previewHighlights = v.notes.map(n => ({
+					midi: n.midi,
+					role: (n.isRoot ? 'root' : 'interval') as 'root' | 'interval',
+					stringIndex: n.stringIndex,
+					fret: n.fret
+				}));
+			}, c * chordDuration));
+		}
+
+		activeNoteTimers.push(setTimeout(() => {
+			previewHighlights = null;
+			isPlaying = false;
+		}, voicings.length * chordDuration));
+
+		try {
+			await audioEngine.playProgressionPattern(chords);
+		} catch {
+			previewHighlights = null;
+			isPlaying = false;
+			clearActiveNote();
+		}
 	}
 
 	async function previewInterval(interval: Interval) {
