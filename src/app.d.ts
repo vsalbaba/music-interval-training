@@ -10,6 +10,8 @@ declare global {
 	}
 }
 
+declare const __COMMIT_HASH__: string;
+
 declare module '*.abc?raw' {
 	const content: string;
 	export default content;

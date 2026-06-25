@@ -137,4 +137,6 @@
 			</table>
 		{/if}
 	</div>
+
+	<div class="shrink-0 px-3 py-2 text-right text-[10px] text-gray-700">{__COMMIT_HASH__}</div>
 </div>
