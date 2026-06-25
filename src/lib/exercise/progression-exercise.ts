@@ -79,7 +79,9 @@ export function selectDistractors(
 	count: number
 ): Progression[] {
 	const others = pool.filter(p => p.nashville !== correct.nashville);
-	const shuffled = [...others].sort(() => Math.random() - 0.5);
+	const sameLength = others.filter(p => p.degrees.length === correct.degrees.length);
+	const candidates = sameLength.length >= count ? sameLength : others;
+	const shuffled = [...candidates].sort(() => Math.random() - 0.5);
 	return shuffled.slice(0, count);
 }
 

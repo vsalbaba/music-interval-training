@@ -126,6 +126,26 @@ describe('selectDistractors', () => {
 		const distractors = selectDistractors(correct, smallPool, 3);
 		expect(distractors.length).toBe(1);
 	});
+
+	it('returns distractors with the same chord count when enough same-length candidates exist', () => {
+		const pool = getProgressionPool('medium');
+		const fourChordCorrect = pool.find(p => p.degrees.length === 4)!;
+		for (let i = 0; i < 20; i++) {
+			const distractors = selectDistractors(fourChordCorrect, pool, 3);
+			for (const d of distractors) {
+				expect(d.degrees.length).toBe(fourChordCorrect.degrees.length);
+			}
+		}
+	});
+
+	it('falls back to full pool when not enough same-length candidates', () => {
+		const fourChord = EASY_PROGRESSIONS.find(p => p.degrees.length === 4)!;
+		const distractors = selectDistractors(fourChord, EASY_PROGRESSIONS, 3);
+		expect(distractors.length).toBe(3);
+		for (const d of distractors) {
+			expect(d.nashville).not.toBe(fourChord.nashville);
+		}
+	});
 });
 
 describe('generateProgressionQuestion', () => {
