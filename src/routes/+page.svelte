@@ -5,7 +5,7 @@
 	import { INTERVAL_DIFFICULTIES, type Interval, type IntervalDifficulty } from '$lib/music/intervals';
 	import { generateQuestion, type IntervalQuestion } from '$lib/exercise/interval-exercise';
 	import { CHORD_DIFFICULTIES, type ChordQuality, type ChordDifficulty } from '$lib/music/chords';
-	import { generateChordQuestion, getChordVoicing, type ChordQuestion } from '$lib/exercise/chord-exercise';
+	import { generateChordQuestion, getChordVoicingNotes, type ChordQuestion } from '$lib/exercise/chord-exercise';
 	import { midiToNote, noteToString } from '$lib/music/notes';
 	import { recordAnswer, getAccuracy, getOverallStats, clearStats, type AccuracyEntry } from '$lib/stats/store';
 	import { locale } from '$lib/i18n/locale';
@@ -226,11 +226,14 @@
 	async function previewChord(quality: ChordQuality) {
 		if (isPlaying || !chordQuestion) return;
 		isPlaying = true;
-		const midis = getChordVoicing(chordQuestion.shape.family, chordQuestion.offset, quality);
+		const voicingNotes = getChordVoicingNotes(chordQuestion.shape.family, chordQuestion.offset, quality);
+		const midis = voicingNotes.map(n => n.midi);
 		if (hasAnswered) {
-			previewHighlights = midis.map((midi, i) => ({
-				midi,
-				role: i === 0 ? 'root' as const : 'interval' as const
+			previewHighlights = voicingNotes.map((note) => ({
+				midi: note.midi,
+				role: note.isRoot ? 'root' as const : 'interval' as const,
+				stringIndex: note.stringIndex,
+				fret: note.fret
 			}));
 			clearActiveNote();
 			for (let i = 0; i < midis.length; i++) {

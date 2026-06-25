@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getChordVoicing } from './chord-exercise';
+import { getChordVoicing, getChordVoicingNotes } from './chord-exercise';
 import { CAGED_SHAPES, applyOffset, type CagedFamily } from '$lib/music/caged-shapes';
 import { STANDARD_TUNING } from '$lib/music/notes';
 import type { ChordQuality } from '$lib/music/chords';
@@ -79,5 +79,40 @@ describe('getChordVoicing', () => {
 		for (let i = 0; i < open.length; i++) {
 			expect(barred[i]).toBe(open[i] + 3);
 		}
+	});
+});
+
+describe('getChordVoicingNotes', () => {
+	it('returns notes with stringIndex and fret when shape exists', () => {
+		const notes = getChordVoicingNotes('E', 0, MAJOR);
+		expect(notes.length).toBeGreaterThanOrEqual(3);
+		for (const note of notes) {
+			expect(note).toHaveProperty('stringIndex');
+			expect(note).toHaveProperty('fret');
+			expect(note).toHaveProperty('midi');
+			expect(note).toHaveProperty('isRoot');
+			expect(note.stringIndex).toBeGreaterThanOrEqual(0);
+			expect(note.stringIndex).toBeLessThanOrEqual(5);
+			expect(note.fret).toBeGreaterThanOrEqual(0);
+		}
+	});
+
+	it('returns notes with position data in fallback path', () => {
+		const fake = makeQuality('NonexistentQuality', [0, 5, 9]);
+		const notes = getChordVoicingNotes('A', 3, fake);
+		expect(notes.length).toBe(3);
+		for (const note of notes) {
+			expect(note).toHaveProperty('stringIndex');
+			expect(note).toHaveProperty('fret');
+			expect(note).toHaveProperty('midi');
+			expect(note).toHaveProperty('isRoot');
+		}
+		expect(notes[0].isRoot).toBe(true);
+	});
+
+	it('midi values match getChordVoicing output', () => {
+		const midis = getChordVoicing('E', 0, MAJOR);
+		const notes = getChordVoicingNotes('E', 0, MAJOR);
+		expect(notes.map(n => n.midi)).toEqual(midis);
 	});
 });

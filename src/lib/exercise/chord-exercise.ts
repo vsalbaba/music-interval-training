@@ -65,14 +65,24 @@ const FAMILY_ROOT_STRING: Record<CagedFamily, number> = {
 };
 
 export function getChordVoicing(family: CagedFamily, offset: number, quality: ChordQuality): number[] {
+	return getChordVoicingNotes(family, offset, quality).map(n => n.midi);
+}
+
+export function getChordVoicingNotes(family: CagedFamily, offset: number, quality: ChordQuality): AbsoluteStringNote[] {
 	const shape = CAGED_SHAPES.find(s => s.family === family && s.quality === quality.name);
 	if (shape) {
 		const voicing = applyOffset(shape, offset);
-		const played = selectPlayedNotes(voicing);
-		return played.map(n => n.midi);
+		return selectPlayedNotes(voicing);
 	}
-	const rootMidi = STANDARD_TUNING[FAMILY_ROOT_STRING[family]] + offset;
-	return quality.intervals.map(i => rootMidi + i);
+	const rootStringIndex = FAMILY_ROOT_STRING[family];
+	const rootMidi = STANDARD_TUNING[rootStringIndex] + offset;
+	return quality.intervals.map((interval, i) => ({
+		stringIndex: rootStringIndex,
+		fret: offset + interval,
+		midi: rootMidi + interval,
+		pitchClass: (rootMidi + interval) % 12,
+		isRoot: i === 0
+	}));
 }
 
 export function generateChordQuestion(qualities: ChordQuality[]): ChordQuestion {
