@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { getIntervalTableRows, getChordTableRows } from '$lib/music/scale-degrees';
 	import { getSongSnippets } from '$lib/music/songs/index';
 	import { t, getNoteNames } from '$lib/i18n/translations';
@@ -11,6 +12,15 @@
 	let currentLocale = $derived($locale);
 	let noteNames = $derived(getNoteNames(currentLocale));
 
+	let audioEngine: typeof import('$lib/audio/engine') | null = null;
+	let abcPlayer: typeof import('$lib/audio/abc-player') | null = null;
+	onMount(async () => {
+		[audioEngine, abcPlayer] = await Promise.all([
+			import('$lib/audio/engine'),
+			import('$lib/audio/abc-player')
+		]);
+	});
+
 	let selectedKey = $state(0);
 	let playingSnippet: string | null = $state(null);
 	let playingTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -18,29 +28,26 @@
 	let intervalRows = $derived(getIntervalTableRows(selectedKey, currentLocale));
 	let chordRows = $derived(getChordTableRows(selectedKey, currentLocale));
 
-	async function stopCurrent() {
-		const { stopAll } = await import('$lib/audio/engine');
-		stopAll();
+	function stopCurrent() {
+		audioEngine?.stopAll();
 		if (playingTimeout) clearTimeout(playingTimeout);
 		playingSnippet = null;
 	}
 
 	async function playInterval(rootNote: string, targetNote: string, semitones: number) {
-		await stopCurrent();
+		stopCurrent();
 		const label = `interval:${rootNote}-${targetNote}`;
 		playingSnippet = label;
 		const rootOctave = 3;
 		const targetOctave = rootOctave + Math.floor((selectedKey + semitones) / 12);
-		const { playIntervalPattern } = await import('$lib/audio/engine');
-		await playIntervalPattern(rootNote + rootOctave, targetNote + targetOctave);
+		await audioEngine!.playIntervalPattern(rootNote + rootOctave, targetNote + targetOctave);
 		playingTimeout = setTimeout(() => { playingSnippet = null; }, 1400);
 	}
 
 	async function playSong(abc: string, title: string) {
-		await stopCurrent();
+		stopCurrent();
 		playingSnippet = title;
-		const { playAbc } = await import('$lib/audio/abc-player');
-		const duration = await playAbc(abc);
+		const duration = await abcPlayer!.playAbc(abc);
 		playingTimeout = setTimeout(() => { playingSnippet = null; }, duration * 1000);
 	}
 </script>

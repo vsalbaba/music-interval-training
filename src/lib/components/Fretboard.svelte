@@ -1,10 +1,14 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { getFretboardNote, noteToString } from '$lib/music/notes';
 	import { getNoteNames, getStringLabels } from '$lib/i18n/translations';
 	import { locale } from '$lib/i18n/locale';
 
 	let noteNames = $derived(getNoteNames($locale));
 	let stringLabels = $derived(getStringLabels($locale));
+
+	let audioEngine: typeof import('$lib/audio/engine') | null = null;
+	onMount(async () => { audioEngine = await import('$lib/audio/engine'); });
 
 	let tappedNote: { stringIndex: number; fret: number } | null = $state(null);
 	let tappedFading = $state(false);
@@ -60,8 +64,7 @@
 	async function handleClick(stringIndex: number, fret: number) {
 		showTappedNote(stringIndex, fret);
 		const note = getFretboardNote(stringIndex, fret);
-		const { playNote } = await import('$lib/audio/engine');
-		playNote(noteToString(note));
+		audioEngine?.playNote(noteToString(note));
 	}
 </script>
 

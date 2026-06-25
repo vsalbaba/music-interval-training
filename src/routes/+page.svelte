@@ -36,6 +36,7 @@
 	let previewHighlights: HighlightedNote[] | null = $state(null);
 	let activeNoteMidi: number | null = $state(null);
 	let activeNoteTimers: ReturnType<typeof setTimeout>[] = [];
+	let audioEngine: typeof import('$lib/audio/engine') | null = null;
 
 	let intervalAccuracy: AccuracyEntry[] = $state([]);
 	let chordAccuracy: AccuracyEntry[] = $state([]);
@@ -103,7 +104,8 @@
 		return '';
 	});
 
-	onMount(() => {
+	onMount(async () => {
+		audioEngine = await import('$lib/audio/engine');
 		newQuestion();
 	});
 
@@ -155,8 +157,7 @@
 				activeNoteTimers.push(setTimeout(() => { activeNoteMidi = intervalQuestion!.intervalMidi; }, 500));
 				activeNoteTimers.push(setTimeout(() => { activeNoteMidi = intervalQuestion!.rootMidi; }, 1200));
 				activeNoteTimers.push(setTimeout(() => { activeNoteMidi = null; }, 1300));
-				const { playIntervalPattern } = await import('$lib/audio/engine');
-				await playIntervalPattern(intervalQuestion.rootNoteString, intervalQuestion.intervalNoteString);
+				await audioEngine!.playIntervalPattern(intervalQuestion.rootNoteString, intervalQuestion.intervalNoteString);
 				setTimeout(() => { isPlaying = false; clearActiveNote(); }, 1400);
 			} else if (exerciseType === 'chords' && chordQuestion) {
 				const midis = chordQuestion.playedNotes.map((n) => n.midi);
@@ -165,8 +166,7 @@
 				}
 				const strumTime = midis.length * 500 + 200;
 				activeNoteTimers.push(setTimeout(() => { activeNoteMidi = null; }, strumTime));
-				const { playChordPattern } = await import('$lib/audio/engine');
-				await playChordPattern(chordQuestion.noteStrings);
+				await audioEngine!.playChordPattern(chordQuestion.noteStrings);
 				const totalTime = chordQuestion.noteStrings.length * 500 + 200 + chordQuestion.noteStrings.length * 40;
 				setTimeout(() => { isPlaying = false; clearActiveNote(); }, totalTime + 200);
 			} else {
@@ -214,8 +214,7 @@
 		try {
 			const rootStr = noteToString(midiToNote(rootMidi));
 			const targetStr = noteToString(midiToNote(targetMidi));
-			const { playIntervalPattern } = await import('$lib/audio/engine');
-			await playIntervalPattern(rootStr, targetStr);
+			await audioEngine!.playIntervalPattern(rootStr, targetStr);
 			setTimeout(() => { isPlaying = false; previewHighlights = null; clearActiveNote(); }, 1400);
 		} catch {
 			isPlaying = false;
@@ -243,8 +242,7 @@
 		}
 		try {
 			const notes = midis.map((m) => noteToString(midiToNote(m)));
-			const { playChordPattern } = await import('$lib/audio/engine');
-			await playChordPattern(notes);
+			await audioEngine!.playChordPattern(notes);
 			const totalTime = midis.length * 500 + 200 + midis.length * 40;
 			setTimeout(() => { isPlaying = false; previewHighlights = null; clearActiveNote(); }, totalTime + 200);
 		} catch {
