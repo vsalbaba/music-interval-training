@@ -361,15 +361,29 @@
 	{:else}
 		<!-- Exercise + Info split area -->
 		<div class="relative flex min-h-0 flex-1">
-			<!-- Info toggle (upper right) -->
-			<button
-				class="absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-full border transition-colors
-					{showInfo ? 'border-indigo-500 bg-indigo-600 text-white' : 'border-gray-600 bg-gray-800 text-gray-400 hover:border-gray-500 hover:text-gray-300'}"
-				onclick={() => (showInfo = !showInfo)}
-				aria-label="Toggle reference info"
-			>
-				<span class="text-sm font-serif font-semibold italic">i</span>
-			</button>
+			<!-- Top-right controls: language toggle + info toggle -->
+			<div class="absolute right-3 top-3 z-20 flex items-center gap-2">
+				<div class="flex overflow-hidden rounded-full border border-gray-600 text-xs font-semibold">
+					<button
+						class="px-2 py-1 transition-colors {currentLocale === 'en' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-300'}"
+						onclick={() => ($locale = 'en')}
+						aria-label="Switch to English"
+					>EN</button>
+					<button
+						class="px-2 py-1 transition-colors {currentLocale === 'cs' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-300'}"
+						onclick={() => ($locale = 'cs')}
+						aria-label="Switch to Czech"
+					>CZ</button>
+				</div>
+				<button
+					class="flex h-8 w-8 items-center justify-center rounded-full border transition-colors
+						{showInfo ? 'border-indigo-500 bg-indigo-600 text-white' : 'border-gray-600 bg-gray-800 text-gray-400 hover:border-gray-500 hover:text-gray-300'}"
+					onclick={() => (showInfo = !showInfo)}
+					aria-label="Toggle reference info"
+				>
+					<span class="text-sm font-serif font-semibold italic">i</span>
+				</button>
+			</div>
 
 			<!-- Exercise column -->
 			<div class="flex min-h-0 flex-1 flex-col items-center justify-center">
