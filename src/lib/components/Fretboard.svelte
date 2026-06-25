@@ -6,6 +6,25 @@
 	let noteNames = $derived(getNoteNames($locale));
 	let stringLabels = $derived(getStringLabels($locale));
 
+	let tappedNote: { stringIndex: number; fret: number } | null = $state(null);
+	let tappedFading = $state(false);
+	let tapTimer1: ReturnType<typeof setTimeout> | undefined;
+	let tapTimer2: ReturnType<typeof setTimeout> | undefined;
+
+	function showTappedNote(stringIndex: number, fret: number) {
+		clearTimeout(tapTimer1);
+		clearTimeout(tapTimer2);
+		tappedNote = { stringIndex, fret };
+		tappedFading = false;
+		tapTimer1 = setTimeout(() => {
+			tappedFading = true;
+			tapTimer2 = setTimeout(() => {
+				tappedNote = null;
+				tappedFading = false;
+			}, 2000);
+		}, 500);
+	}
+
 	interface HighlightedNote {
 		midi: number;
 		role: 'root' | 'interval' | 'ghost';
@@ -39,6 +58,7 @@
 	}
 
 	async function handleClick(stringIndex: number, fret: number) {
+		showTappedNote(stringIndex, fret);
 		const note = getFretboardNote(stringIndex, fret);
 		const { playNote } = await import('$lib/audio/engine');
 		playNote(noteToString(note));
@@ -92,6 +112,7 @@
 							{:else}
 								<!-- Note dot -->
 								{@const isActive = highlight !== null && highlight !== 'ghost' && activeNoteMidi !== null && note.midi === activeNoteMidi}
+								{@const isTapped = tappedNote?.stringIndex === displayIndex && tappedNote?.fret === fret}
 								<div
 									class="relative z-10 flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold transition-all
 										{highlight === 'root'
@@ -100,7 +121,11 @@
 												? 'bg-sky-500 text-black'
 												: highlight === 'ghost'
 													? 'bg-gray-600/40 text-gray-400 border border-gray-500'
-													: 'bg-transparent text-transparent group-hover:bg-gray-600 group-hover:text-gray-200'}
+													: isTapped
+														? tappedFading
+															? 'bg-gray-600 text-gray-200 opacity-0 duration-[2000ms]'
+															: 'bg-gray-600 text-gray-200'
+														: 'bg-transparent text-transparent group-hover:bg-gray-600 group-hover:text-gray-200'}
 										{isActive ? 'ring-2 ring-yellow-300 ring-offset-1 ring-offset-gray-900' : ''}"
 								>
 									{noteNames[note.midi % 12]}
