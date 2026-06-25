@@ -223,7 +223,7 @@
 		</div>
 		{#if question}
 			{@const rootName = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'][question.rootMidi % 12]}
-			{@const suffixMap = { Maj: '', Min: 'm', Dim: 'dim', Aug: 'aug', Sus2: 'sus2', Sus4: 'sus4', Dom7: '7', Maj7: 'maj7', Min7: 'm7' }}
+			{@const suffixMap: Record<string, string> = { Maj: '', Min: 'm', Dim: 'dim', Aug: 'aug', Sus2: 'sus2', Sus4: 'sus4', Dom7: '7', Maj7: 'maj7', Min7: 'm7' }}
 			{@const suffix = suffixMap[question.quality.shortName] ?? question.quality.shortName}
 			<div class="mt-1 text-xs text-gray-500">
 				{rootName}{suffix} -- {question.shape.family}-shape at fret {question.offset}
