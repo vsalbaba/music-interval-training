@@ -26,3 +26,5 @@ vite.config.ts.timestamp-*
 .last-run.log
 
 # Local tooling
+ralph/
+.scratch/
