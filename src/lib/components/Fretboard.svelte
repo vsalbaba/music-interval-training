@@ -10,22 +10,23 @@
 	let audioEngine: typeof import('$lib/audio/engine') | null = null;
 	onMount(async () => { audioEngine = await import('$lib/audio/engine'); });
 
-	let tappedNote: { stringIndex: number; fret: number } | null = $state(null);
-	let tappedFading = $state(false);
-	let tapTimer1: ReturnType<typeof setTimeout> | undefined;
-	let tapTimer2: ReturnType<typeof setTimeout> | undefined;
+	let tappedNotes: Map<string, { fading: boolean }> = $state(new Map());
+
+	function tapKey(stringIndex: number, fret: number) {
+		return `${stringIndex}-${fret}`;
+	}
 
 	function showTappedNote(stringIndex: number, fret: number) {
-		clearTimeout(tapTimer1);
-		clearTimeout(tapTimer2);
-		tappedNote = { stringIndex, fret };
-		tappedFading = false;
-		tapTimer1 = setTimeout(() => {
-			tappedFading = true;
-			tapTimer2 = setTimeout(() => {
-				tappedNote = null;
-				tappedFading = false;
-			}, 2000);
+		const key = tapKey(stringIndex, fret);
+		tappedNotes.set(key, { fading: false });
+		setTimeout(() => {
+			const entry = tappedNotes.get(key);
+			if (entry) {
+				entry.fading = true;
+				setTimeout(() => {
+					tappedNotes.delete(key);
+				}, 2000);
+			}
 		}, 500);
 	}
 
@@ -115,7 +116,7 @@
 							{:else}
 								<!-- Note dot -->
 								{@const isActive = highlight !== null && highlight !== 'ghost' && activeNoteMidi !== null && note.midi === activeNoteMidi}
-								{@const isTapped = tappedNote?.stringIndex === displayIndex && tappedNote?.fret === fret}
+								{@const tapState = tappedNotes.get(tapKey(displayIndex, fret))}
 								<div
 									class="relative z-10 flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold transition-all
 										{highlight === 'root'
@@ -124,8 +125,8 @@
 												? 'bg-sky-500 text-black'
 												: highlight === 'ghost'
 													? 'bg-gray-600/40 text-gray-400 border border-gray-500'
-													: isTapped
-														? tappedFading
+													: tapState
+														? tapState.fading
 															? 'bg-gray-600 text-gray-200 opacity-0 duration-[2000ms]'
 															: 'bg-gray-600 text-gray-200'
 														: 'bg-transparent text-transparent group-hover:bg-gray-600 group-hover:text-gray-200'}
