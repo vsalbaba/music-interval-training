@@ -64,7 +64,9 @@ const translations = {
 				song: 'Song',
 				formula: 'Formula',
 				chord: 'Chord',
-				hint: 'Hint'
+				hint: 'Hint',
+				reference: 'Reference',
+				close: 'Close'
 			}
 		}
 	},
@@ -131,7 +133,9 @@ const translations = {
 				song: 'Píseň',
 				formula: 'Vzorec',
 				chord: 'Akord',
-				hint: 'Nápověda'
+				hint: 'Nápověda',
+				reference: 'Přehled',
+				close: 'Zavřít'
 			}
 		}
 	}

@@ -9,7 +9,7 @@
 	import { midiToNote, noteToString } from '$lib/music/notes';
 	import { recordAnswer, getAccuracy, getOverallStats, clearStats, type AccuracyEntry } from '$lib/stats/store';
 	import { locale } from '$lib/i18n/locale';
-	import { getIntervalName, getChordName } from '$lib/i18n/translations';
+	import { t, getIntervalName, getChordName } from '$lib/i18n/translations';
 
 	let currentLocale = $derived($locale);
 
@@ -279,17 +279,17 @@
 		<div class="flex min-h-0 flex-1 flex-col items-center overflow-y-auto p-8">
 			<div class="w-full max-w-lg">
 				<div class="mb-6 flex items-center justify-between">
-					<h2 class="text-xl font-bold">Stats</h2>
+					<h2 class="text-xl font-bold">{t(currentLocale, 'ui.stats.heading')}</h2>
 					<button
 						class="rounded-lg bg-gray-700 px-4 py-2 text-sm font-semibold hover:bg-gray-600"
 						onclick={hideStats}
 					>
-						Back
+						{t(currentLocale, 'ui.stats.back')}
 					</button>
 				</div>
 
 				<div class="mb-8 rounded-lg bg-gray-800/50 p-4">
-					<div class="text-sm text-gray-400">Overall</div>
+					<div class="text-sm text-gray-400">{t(currentLocale, 'ui.stats.overall')}</div>
 					<div class="mt-1 text-2xl font-bold">
 						{overallStats.percentage}%
 						<span class="text-sm font-normal text-gray-400">
@@ -300,7 +300,7 @@
 
 				{#if intervalAccuracy.length > 0}
 					<div class="mb-6">
-						<h3 class="mb-3 text-sm font-semibold text-gray-400 uppercase">Intervals</h3>
+						<h3 class="mb-3 text-sm font-semibold text-gray-400 uppercase">{t(currentLocale, 'ui.exerciseType.intervals')}</h3>
 						{#each intervalAccuracy as entry}
 							<div class="mb-2 flex items-center justify-between rounded bg-gray-800/30 px-3 py-2">
 								<span class="text-sm">{entry.name}</span>
@@ -323,7 +323,7 @@
 
 				{#if chordAccuracy.length > 0}
 					<div class="mb-6">
-						<h3 class="mb-3 text-sm font-semibold text-gray-400 uppercase">Chords</h3>
+						<h3 class="mb-3 text-sm font-semibold text-gray-400 uppercase">{t(currentLocale, 'ui.exerciseType.chords')}</h3>
 						{#each chordAccuracy as entry}
 							<div class="mb-2 flex items-center justify-between rounded bg-gray-800/30 px-3 py-2">
 								<span class="text-sm">{entry.name}</span>
@@ -345,7 +345,7 @@
 				{/if}
 
 				{#if overallStats.total === 0}
-					<p class="text-center text-gray-500">No data yet. Start practicing!</p>
+					<p class="text-center text-gray-500">{t(currentLocale, 'ui.stats.noData')}</p>
 				{/if}
 
 				{#if overallStats.total > 0}
@@ -353,7 +353,7 @@
 						class="mt-4 rounded bg-red-900/50 px-4 py-2 text-sm text-red-300 hover:bg-red-900/80"
 						onclick={handleClearStats}
 					>
-						Clear all stats
+						{t(currentLocale, 'ui.stats.clearAll')}
 					</button>
 				{/if}
 			</div>
@@ -380,20 +380,20 @@
 							{exerciseType === 'intervals' ? 'bg-indigo-600' : 'bg-gray-700 hover:bg-gray-600'}"
 						onclick={() => switchExercise('intervals')}
 					>
-						Intervals
+						{t(currentLocale, 'ui.exerciseType.intervals')}
 					</button>
 					<button
 						class="rounded-lg px-4 py-2 text-sm font-semibold transition-colors
 							{exerciseType === 'chords' ? 'bg-indigo-600' : 'bg-gray-700 hover:bg-gray-600'}"
 						onclick={() => switchExercise('chords')}
 					>
-						Chords
+						{t(currentLocale, 'ui.exerciseType.chords')}
 					</button>
 					<button
 						class="rounded-lg bg-gray-700 px-4 py-2 text-sm font-semibold transition-colors hover:bg-gray-600"
 						onclick={showStats}
 					>
-						Stats
+						{t(currentLocale, 'ui.stats.heading')}
 					</button>
 				</div>
 
@@ -406,7 +406,7 @@
 									{intervalDifficulty === diff.key ? 'bg-indigo-500/60 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}"
 								onclick={() => switchIntervalDifficulty(diff.key)}
 							>
-								{diff.label}
+								{t(currentLocale, `ui.difficulty.${diff.key}`)}
 							</button>
 						{/each}
 					{:else}
@@ -416,7 +416,7 @@
 									{chordDifficulty === diff.key ? 'bg-indigo-500/60 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}"
 								onclick={() => switchChordDifficulty(diff.key)}
 							>
-								{diff.label}
+								{t(currentLocale, `ui.difficulty.${diff.key}`)}
 							</button>
 						{/each}
 					{/if}
@@ -425,7 +425,7 @@
 				<!-- Exercise Area -->
 				<section class="flex flex-col items-center p-4">
 					<div class="mb-3 text-sm text-gray-400">
-						Score: {score.correct} / {score.total}
+						{t(currentLocale, 'ui.score')} {score.correct} / {score.total}
 					</div>
 
 					<div class="flex gap-4">
@@ -434,7 +434,7 @@
 							onclick={playCurrentQuestion}
 							disabled={isPlaying}
 						>
-							{isPlaying ? 'Playing...' : 'Play'}
+							{isPlaying ? t(currentLocale, 'ui.play.playing') : t(currentLocale, 'ui.play.play')}
 						</button>
 
 						{#if hasAnswered}
@@ -442,7 +442,7 @@
 								class="rounded-lg bg-gray-700 px-6 py-3 font-semibold transition-colors hover:bg-gray-600"
 								onclick={() => newQuestion(true)}
 							>
-								Next
+								{t(currentLocale, 'ui.play.next')}
 							</button>
 						{/if}
 					</div>
@@ -450,9 +450,9 @@
 					{#if hasAnswered}
 						<div class="mt-4 text-lg font-semibold {isCorrect ? 'text-green-400' : 'text-red-400'}">
 							{#if isCorrect}
-								Correct!
+								{t(currentLocale, 'ui.feedback.correct')}
 							{:else}
-								Wrong -- it was {correctAnswerName}
+								{t(currentLocale, 'ui.feedback.wrong').replace('{name}', correctAnswerName)}
 							{/if}
 						</div>
 						{#if exerciseType === 'chords' && chordQuestion}
@@ -562,12 +562,12 @@
 				<div class="absolute inset-0 z-10 bg-gray-950 md:hidden">
 					<div class="flex h-full flex-col">
 						<div class="flex items-center justify-between border-b border-gray-800 px-4 py-3">
-							<span class="text-sm font-semibold text-gray-300">Reference</span>
+							<span class="text-sm font-semibold text-gray-300">{t(currentLocale, 'ui.infoPanel.reference')}</span>
 							<button
 								class="rounded bg-gray-700 px-3 py-1 text-xs font-medium text-gray-300 hover:bg-gray-600"
 								onclick={() => (showInfo = false)}
 							>
-								Close
+								{t(currentLocale, 'ui.infoPanel.close')}
 							</button>
 						</div>
 						<div class="min-h-0 flex-1">

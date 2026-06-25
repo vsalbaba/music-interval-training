@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getIntervalTableRows, getChordTableRows } from '$lib/music/scale-degrees';
 	import { getSongSnippets } from '$lib/music/songs/index';
-	import { getNoteNames } from '$lib/i18n/translations';
+	import { t, getNoteNames } from '$lib/i18n/translations';
 	import { locale } from '$lib/i18n/locale';
 
 	type Mode = 'intervals' | 'chords';
@@ -48,7 +48,7 @@
 <div class="flex h-full flex-col overflow-hidden">
 	<!-- Key picker -->
 	<div class="shrink-0 border-b border-gray-800 px-3 py-3">
-		<div class="mb-1 text-xs text-gray-500 uppercase">Key</div>
+		<div class="mb-1 text-xs text-gray-500 uppercase">{t(currentLocale, 'ui.infoPanel.key')}</div>
 		<div class="flex flex-wrap gap-1">
 			{#each noteNames as name, i}
 				<button
@@ -68,10 +68,10 @@
 			<table class="w-full text-sm">
 				<thead>
 					<tr class="text-left text-xs text-gray-500 uppercase">
-						<th class="pb-2 pr-2">Deg</th>
-						<th class="pb-2 pr-2">Interval</th>
-						<th class="pb-2 pr-2">Notes</th>
-						<th class="pb-2">Song</th>
+						<th class="pb-2 pr-2">{t(currentLocale, 'ui.infoPanel.degree')}</th>
+						<th class="pb-2 pr-2">{t(currentLocale, 'ui.infoPanel.interval')}</th>
+						<th class="pb-2 pr-2">{t(currentLocale, 'ui.infoPanel.notes')}</th>
+						<th class="pb-2">{t(currentLocale, 'ui.infoPanel.song')}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -111,10 +111,10 @@
 			<table class="w-full text-sm">
 				<thead>
 					<tr class="text-left text-xs text-gray-500 uppercase">
-						<th class="pb-2 pr-2">Formula</th>
-						<th class="pb-2 pr-2">Chord</th>
-						<th class="pb-2 pr-2">Notes</th>
-						<th class="pb-2">Hint</th>
+						<th class="pb-2 pr-2">{t(currentLocale, 'ui.infoPanel.formula')}</th>
+						<th class="pb-2 pr-2">{t(currentLocale, 'ui.infoPanel.chord')}</th>
+						<th class="pb-2 pr-2">{t(currentLocale, 'ui.infoPanel.notes')}</th>
+						<th class="pb-2">{t(currentLocale, 'ui.infoPanel.hint')}</th>
 					</tr>
 				</thead>
 				<tbody>
