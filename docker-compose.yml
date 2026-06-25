@@ -1,6 +1,9 @@
 services:
   app:
-    build: .
+    build:
+      context: .
+      args:
+        COMMIT_HASH: "${COMMIT_HASH:-dev}"
     ports:
       - "${BIND_HOST:-0.0.0.0}:${APP_PORT:-3001}:3000"
     restart: unless-stopped
