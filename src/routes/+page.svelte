@@ -6,6 +6,8 @@
 	import { generateQuestion, type IntervalQuestion } from '$lib/exercise/interval-exercise';
 	import { CHORD_DIFFICULTIES, type ChordQuality, type ChordDifficulty } from '$lib/music/chords';
 	import { generateChordQuestion, getChordVoicingNotes, type ChordQuestion } from '$lib/exercise/chord-exercise';
+	import { generateProgressionQuestion, type ProgressionQuestion } from '$lib/exercise/progression-exercise';
+	import { type Progression, resolveProgressionChordNames } from '$lib/music/progressions';
 	import { midiToNote, noteToString } from '$lib/music/notes';
 	import { recordAnswer, getAccuracy, getOverallStats, clearStats, type AccuracyEntry } from '$lib/stats/store';
 	import { locale } from '$lib/i18n/locale';
@@ -17,7 +19,7 @@
 	let currentView: View = $state('exercise');
 	let showInfo = $state(false);
 
-	type ExerciseType = 'intervals' | 'chords';
+	type ExerciseType = 'intervals' | 'chords' | 'progressions';
 	let exerciseType: ExerciseType = $state('intervals');
 	let intervalDifficulty: IntervalDifficulty = $state('easy');
 	let chordDifficulty: ChordDifficulty = $state('triads');
@@ -27,9 +29,11 @@
 
 	let intervalQuestion: IntervalQuestion | null = $state(null);
 	let chordQuestion: ChordQuestion | null = $state(null);
+	let progressionQuestion: ProgressionQuestion | null = $state(null);
 
 	let selectedIntervalAnswer: Interval | null = $state(null);
 	let selectedChordAnswer: ChordQuality | null = $state(null);
+	let selectedProgressionAnswer: Progression | null = $state(null);
 	let isCorrect: boolean | null = $state(null);
 	let score = $state({ correct: 0, total: 0 });
 	let isPlaying = $state(false);
@@ -40,6 +44,7 @@
 
 	let intervalAccuracy: AccuracyEntry[] = $state([]);
 	let chordAccuracy: AccuracyEntry[] = $state([]);
+	let progressionAccuracy: AccuracyEntry[] = $state([]);
 	let overallStats = $state({ total: 0, correct: 0, percentage: 0 });
 
 	type HighlightedNote = { midi: number; role: 'root' | 'interval' | 'ghost'; stringIndex?: number; fret?: number };
@@ -53,7 +58,7 @@
 				{ midi: intervalQuestion.rootMidi, role: 'root' as const },
 				{ midi: intervalQuestion.intervalMidi, role: 'interval' as const }
 			];
-		} else {
+		} else if (exerciseType === 'chords') {
 			if (!chordQuestion || selectedChordAnswer === null) return [];
 
 			const result: HighlightedNote[] = [];
@@ -82,6 +87,8 @@
 			}
 
 			return result;
+		} else {
+			return [];
 		}
 	});
 
@@ -93,7 +100,11 @@
 	});
 
 	let hasAnswered = $derived(
-		exerciseType === 'intervals' ? selectedIntervalAnswer !== null : selectedChordAnswer !== null
+		exerciseType === 'intervals'
+			? selectedIntervalAnswer !== null
+			: exerciseType === 'chords'
+				? selectedChordAnswer !== null
+				: selectedProgressionAnswer !== null
 	);
 
 	let correctAnswerName = $derived.by(() => {
@@ -101,6 +112,8 @@
 			return getIntervalName(currentLocale, intervalQuestion.interval.semitones);
 		if (exerciseType === 'chords' && chordQuestion)
 			return getChordName(currentLocale, chordQuestion.quality.shortName);
+		if (exerciseType === 'progressions' && progressionQuestion)
+			return progressionQuestion.progression.nashville;
 		return '';
 	});
 
@@ -140,9 +153,12 @@
 		if (exerciseType === 'intervals') {
 			intervalQuestion = generateQuestion(currentIntervalDiff.intervals);
 			selectedIntervalAnswer = null;
-		} else {
+		} else if (exerciseType === 'chords') {
 			chordQuestion = generateChordQuestion(currentChordDiff.qualities);
 			selectedChordAnswer = null;
+		} else {
+			progressionQuestion = generateProgressionQuestion('easy');
+			selectedProgressionAnswer = null;
 		}
 		if (autoplay) playCurrentQuestion();
 	}
@@ -169,6 +185,11 @@
 				await audioEngine!.playChordPattern(chordQuestion.noteStrings);
 				const totalTime = chordQuestion.noteStrings.length * 500 + 200 + chordQuestion.noteStrings.length * 40;
 				setTimeout(() => { isPlaying = false; clearActiveNote(); }, totalTime + 200);
+			} else if (exerciseType === 'progressions' && progressionQuestion) {
+				const chords = progressionQuestion.voicings.map(v => v.noteStrings);
+				await audioEngine!.playProgressionPattern(chords);
+				const totalTime = chords.length * 1200;
+				setTimeout(() => { isPlaying = false; }, totalTime + 200);
 			} else {
 				isPlaying = false;
 			}
@@ -193,6 +214,15 @@
 		score.total++;
 		if (isCorrect) score.correct++;
 		recordAnswer('chord', chordQuestion.quality.name, isCorrect);
+	}
+
+	function submitProgressionAnswer(progression: Progression) {
+		if (!progressionQuestion || selectedProgressionAnswer !== null) return;
+		selectedProgressionAnswer = progression;
+		isCorrect = progression.nashville === progressionQuestion.progression.nashville;
+		score.total++;
+		if (isCorrect) score.correct++;
+		recordAnswer('progression', progressionQuestion.progression.nashville, isCorrect);
 	}
 
 	async function previewInterval(interval: Interval) {
@@ -257,6 +287,7 @@
 	function showStats() {
 		intervalAccuracy = getAccuracy('interval');
 		chordAccuracy = getAccuracy('chord');
+		progressionAccuracy = getAccuracy('progression');
 		overallStats = getOverallStats();
 		currentView = 'stats';
 	}
@@ -269,6 +300,7 @@
 		clearStats();
 		intervalAccuracy = [];
 		chordAccuracy = [];
+		progressionAccuracy = [];
 		overallStats = { total: 0, correct: 0, percentage: 0 };
 	}
 </script>
@@ -327,6 +359,29 @@
 						{#each chordAccuracy as entry}
 							<div class="mb-2 flex items-center justify-between rounded bg-gray-800/30 px-3 py-2">
 								<span class="text-sm">{translateStatsName(currentLocale, 'chord', entry.name)}</span>
+								<div class="flex items-center gap-3">
+									<div class="h-2 w-24 overflow-hidden rounded-full bg-gray-700">
+										<div
+											class="h-full rounded-full {entry.percentage < 60 ? 'bg-red-500' : entry.percentage < 80 ? 'bg-yellow-500' : 'bg-green-500'}"
+											style="width: {entry.percentage}%"
+										></div>
+									</div>
+									<span class="w-16 text-right text-sm {entry.percentage < 60 ? 'text-red-400' : 'text-gray-300'}">
+										{entry.percentage}%
+										<span class="text-xs text-gray-500">({entry.total})</span>
+									</span>
+								</div>
+							</div>
+						{/each}
+					</div>
+				{/if}
+
+				{#if progressionAccuracy.length > 0}
+					<div class="mb-6">
+						<h3 class="mb-3 text-sm font-semibold text-gray-400 uppercase">{t(currentLocale, 'ui.exerciseType.progressions')}</h3>
+						{#each progressionAccuracy as entry}
+							<div class="mb-2 flex items-center justify-between rounded bg-gray-800/30 px-3 py-2">
+								<span class="text-sm">{entry.name}</span>
 								<div class="flex items-center gap-3">
 									<div class="h-2 w-24 overflow-hidden rounded-full bg-gray-700">
 										<div
@@ -404,6 +459,13 @@
 						{t(currentLocale, 'ui.exerciseType.chords')}
 					</button>
 					<button
+						class="rounded-lg px-4 py-2 text-sm font-semibold transition-colors
+							{exerciseType === 'progressions' ? 'bg-indigo-600' : 'bg-gray-700 hover:bg-gray-600'}"
+						onclick={() => switchExercise('progressions')}
+					>
+						{t(currentLocale, 'ui.exerciseType.progressions')}
+					</button>
+					<button
 						class="rounded-lg bg-gray-700 px-4 py-2 text-sm font-semibold transition-colors hover:bg-gray-600"
 						onclick={showStats}
 					>
@@ -423,7 +485,7 @@
 								{t(currentLocale, `ui.difficulty.${diff.key}`)}
 							</button>
 						{/each}
-					{:else}
+					{:else if exerciseType === 'chords'}
 						{#each CHORD_DIFFICULTIES as diff}
 							<button
 								class="rounded px-3 py-1 text-xs font-medium transition-colors
@@ -441,6 +503,12 @@
 					<div class="mb-3 text-sm text-gray-400">
 						{t(currentLocale, 'ui.score')} {score.correct} / {score.total}
 					</div>
+
+					{#if exerciseType === 'progressions' && progressionQuestion}
+						<div class="mb-3 text-lg font-semibold text-indigo-400">
+							{t(currentLocale, 'ui.infoPanel.key')}: {progressionQuestion.keyName}
+						</div>
+					{/if}
 
 					<div class="flex gap-4">
 						<button
@@ -475,6 +543,11 @@
 							{@const suffix = suffixMap[chordQuestion.quality.shortName] ?? chordQuestion.quality.shortName}
 							<div class="mt-1 text-xs text-gray-500">
 								{rootName}{suffix} -- {chordQuestion.shape.family}-shape at fret {chordQuestion.offset}
+							</div>
+						{/if}
+						{#if exerciseType === 'progressions' && progressionQuestion}
+							<div class="mt-1 text-sm text-gray-400">
+								{progressionQuestion.progression.nashville} = {progressionQuestion.chordNames.join(' - ')}
 							</div>
 						{/if}
 					{/if}
@@ -521,7 +594,7 @@
 								</button>
 							</div>
 						{/each}
-					{:else}
+					{:else if exerciseType === 'chords'}
 						{#each currentChordDiff.qualities as quality}
 							{@const isSelected = selectedChordAnswer?.name === quality.name}
 							{@const isAnswer = selectedChordAnswer !== null && chordQuestion?.quality.name === quality.name}
@@ -560,6 +633,29 @@
 								</button>
 							</div>
 						{/each}
+					{:else}
+						{#if progressionQuestion}
+							{#each progressionQuestion.options as option}
+								{@const isSelected = selectedProgressionAnswer?.nashville === option.nashville}
+								{@const isAnswer = selectedProgressionAnswer !== null && progressionQuestion.progression.nashville === option.nashville}
+								<button
+									class="rounded-lg px-4 py-3 text-sm font-semibold transition-colors
+										{isSelected && isCorrect
+											? 'bg-green-600 text-white'
+											: isSelected && !isCorrect
+												? 'bg-red-600 text-white'
+												: isAnswer
+													? 'bg-green-600/50 text-white'
+													: hasAnswered
+														? 'bg-gray-800 text-gray-500 cursor-default'
+														: 'bg-gray-700 text-white hover:bg-gray-600 cursor-pointer'}"
+									onclick={() => submitProgressionAnswer(option)}
+									disabled={hasAnswered}
+								>
+									{option.nashville}
+								</button>
+							{/each}
+						{/if}
 					{/if}
 				</section>
 			</div>

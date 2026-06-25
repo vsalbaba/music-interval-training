@@ -31,7 +31,7 @@ const translations = {
 			Min7: { name: 'Minor 7', hint: 'Minor + flat 7th' }
 		},
 		ui: {
-			exerciseType: { intervals: 'Intervals', chords: 'Chords' },
+			exerciseType: { intervals: 'Intervals', chords: 'Chords', progressions: 'Progressions' },
 			difficulty: {
 				easy: 'Easy',
 				medium: 'Medium',
@@ -100,7 +100,7 @@ const translations = {
 			Min7: { name: 'Moll 7', hint: 'Moll + malá septima' }
 		},
 		ui: {
-			exerciseType: { intervals: 'Intervaly', chords: 'Akordy' },
+			exerciseType: { intervals: 'Intervaly', chords: 'Akordy', progressions: 'Progrese' },
 			difficulty: {
 				easy: 'Lehké',
 				medium: 'Střední',
@@ -198,7 +198,7 @@ export function getChordHint(locale: Locale, shortName: string): string {
 	return chords[shortName]?.hint ?? '';
 }
 
-export function translateStatsName(locale: Locale, type: 'interval' | 'chord', englishName: string): string {
+export function translateStatsName(locale: Locale, type: 'interval' | 'chord' | 'progression', englishName: string): string {
 	if (type === 'interval') {
 		const semitones = translations.en.intervals.indexOf(englishName as (typeof translations.en.intervals)[number]);
 		if (semitones >= 0) return getIntervalName(locale, semitones);

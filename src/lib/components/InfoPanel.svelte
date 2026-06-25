@@ -5,7 +5,7 @@
 	import { t, getNoteNames } from '$lib/i18n/translations';
 	import { locale } from '$lib/i18n/locale';
 
-	type Mode = 'intervals' | 'chords';
+	type Mode = 'intervals' | 'chords' | 'progressions';
 
 	let { mode = 'intervals' as Mode }: { mode?: Mode } = $props();
 

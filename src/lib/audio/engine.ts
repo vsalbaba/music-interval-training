@@ -73,6 +73,21 @@ export async function playIntervalPattern(note1: string, note2: string) {
 	s2.triggerAttack(note2, strumTime + strumStagger);
 }
 
+export async function playProgressionPattern(chords: string[][]) {
+	await ensureStarted();
+	const now = Tone.now();
+	const strumStagger = 0.04;
+	const chordDuration = 1.2;
+
+	for (let c = 0; c < chords.length; c++) {
+		const chordStart = now + c * chordDuration;
+		const notes = chords[c];
+		for (let i = 0; i < notes.length; i++) {
+			getSynth().triggerAttack(notes[i], chordStart + i * strumStagger);
+		}
+	}
+}
+
 export async function playChordPattern(notes: string[]) {
 	await ensureStarted();
 	const now = Tone.now();
