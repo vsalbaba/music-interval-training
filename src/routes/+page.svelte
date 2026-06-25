@@ -9,7 +9,7 @@
 	import { midiToNote, noteToString } from '$lib/music/notes';
 	import { recordAnswer, getAccuracy, getOverallStats, clearStats, type AccuracyEntry } from '$lib/stats/store';
 	import { locale } from '$lib/i18n/locale';
-	import { t, getIntervalName, getChordName } from '$lib/i18n/translations';
+	import { t, getIntervalName, getChordName, translateStatsName } from '$lib/i18n/translations';
 
 	let currentLocale = $derived($locale);
 
@@ -303,7 +303,7 @@
 						<h3 class="mb-3 text-sm font-semibold text-gray-400 uppercase">{t(currentLocale, 'ui.exerciseType.intervals')}</h3>
 						{#each intervalAccuracy as entry}
 							<div class="mb-2 flex items-center justify-between rounded bg-gray-800/30 px-3 py-2">
-								<span class="text-sm">{entry.name}</span>
+								<span class="text-sm">{translateStatsName(currentLocale, 'interval', entry.name)}</span>
 								<div class="flex items-center gap-3">
 									<div class="h-2 w-24 overflow-hidden rounded-full bg-gray-700">
 										<div
@@ -326,7 +326,7 @@
 						<h3 class="mb-3 text-sm font-semibold text-gray-400 uppercase">{t(currentLocale, 'ui.exerciseType.chords')}</h3>
 						{#each chordAccuracy as entry}
 							<div class="mb-2 flex items-center justify-between rounded bg-gray-800/30 px-3 py-2">
-								<span class="text-sm">{entry.name}</span>
+								<span class="text-sm">{translateStatsName(currentLocale, 'chord', entry.name)}</span>
 								<div class="flex items-center gap-3">
 									<div class="h-2 w-24 overflow-hidden rounded-full bg-gray-700">
 										<div

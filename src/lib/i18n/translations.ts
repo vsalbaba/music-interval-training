@@ -197,3 +197,16 @@ export function getChordHint(locale: Locale, shortName: string): string {
 	const chords = translations[locale].chords as Record<string, { hint: string }>;
 	return chords[shortName]?.hint ?? '';
 }
+
+export function translateStatsName(locale: Locale, type: 'interval' | 'chord', englishName: string): string {
+	if (type === 'interval') {
+		const semitones = translations.en.intervals.indexOf(englishName as (typeof translations.en.intervals)[number]);
+		if (semitones >= 0) return getIntervalName(locale, semitones);
+	} else {
+		const enChords = translations.en.chords as Record<string, { name: string }>;
+		for (const [shortName, entry] of Object.entries(enChords)) {
+			if (entry.name === englishName) return getChordName(locale, shortName);
+		}
+	}
+	return englishName;
+}
