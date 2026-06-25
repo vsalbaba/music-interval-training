@@ -5,7 +5,7 @@
 	import { INTERVAL_DIFFICULTIES, type Interval, type IntervalDifficulty } from '$lib/music/intervals';
 	import { generateQuestion, type IntervalQuestion } from '$lib/exercise/interval-exercise';
 	import { CHORD_DIFFICULTIES, type ChordQuality, type ChordDifficulty } from '$lib/music/chords';
-	import { generateChordQuestion, type ChordQuestion } from '$lib/exercise/chord-exercise';
+	import { generateChordQuestion, getChordVoicing, type ChordQuestion } from '$lib/exercise/chord-exercise';
 	import { midiToNote, noteToString } from '$lib/music/notes';
 	import { recordAnswer, getAccuracy, getOverallStats, clearStats, type AccuracyEntry } from '$lib/stats/store';
 	import { locale } from '$lib/i18n/locale';
@@ -226,11 +226,10 @@
 	async function previewChord(quality: ChordQuality) {
 		if (isPlaying || !chordQuestion) return;
 		isPlaying = true;
-		const rootMidi = chordQuestion.rootMidi;
-		const midis = quality.intervals.map((i) => rootMidi + i);
+		const midis = getChordVoicing(chordQuestion.shape.family, chordQuestion.offset, quality);
 		if (hasAnswered) {
-			previewHighlights = quality.intervals.map((i) => ({
-				midi: rootMidi + i,
+			previewHighlights = midis.map((midi, i) => ({
+				midi,
 				role: i === 0 ? 'root' as const : 'interval' as const
 			}));
 			clearActiveNote();

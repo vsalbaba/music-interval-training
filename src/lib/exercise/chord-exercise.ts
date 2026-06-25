@@ -1,9 +1,10 @@
-import { midiToNote, noteToString } from '$lib/music/notes';
+import { midiToNote, noteToString, STANDARD_TUNING } from '$lib/music/notes';
 import { type ChordQuality } from '$lib/music/chords';
 import {
 	CAGED_SHAPES,
 	getValidOffsets,
 	applyOffset,
+	type CagedFamily,
 	type ChordShape,
 	type AbsoluteVoicing,
 	type AbsoluteStringNote
@@ -53,6 +54,25 @@ function selectPlayedNotes(voicing: AbsoluteVoicing): AbsoluteStringNote[] {
 	}
 
 	return selected;
+}
+
+const FAMILY_ROOT_STRING: Record<CagedFamily, number> = {
+	'C': 1,
+	'A': 1,
+	'G': 0,
+	'E': 0,
+	'D': 2
+};
+
+export function getChordVoicing(family: CagedFamily, offset: number, quality: ChordQuality): number[] {
+	const shape = CAGED_SHAPES.find(s => s.family === family && s.quality === quality.name);
+	if (shape) {
+		const voicing = applyOffset(shape, offset);
+		const played = selectPlayedNotes(voicing);
+		return played.map(n => n.midi);
+	}
+	const rootMidi = STANDARD_TUNING[FAMILY_ROOT_STRING[family]] + offset;
+	return quality.intervals.map(i => rootMidi + i);
 }
 
 export function generateChordQuestion(qualities: ChordQuality[]): ChordQuestion {
