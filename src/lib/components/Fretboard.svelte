@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { getFretboardNote, noteToString } from '$lib/music/notes';
-	import { getNoteNames } from '$lib/i18n/translations';
+	import { getNoteNames, getStringLabels } from '$lib/i18n/translations';
 	import { locale } from '$lib/i18n/locale';
 
 	let noteNames = $derived(getNoteNames($locale));
+	let stringLabels = $derived(getStringLabels($locale));
 
 	interface HighlightedNote {
 		midi: number;
@@ -22,8 +23,6 @@
 	const FRET_COUNT = 12;
 	const FRET_MARKERS = [3, 5, 7, 9];
 	const DOUBLE_MARKER = 12;
-
-	const STRING_LABELS = ['E', 'A', 'D', 'G', 'B', 'e'];
 
 	function getHighlight(stringIndex: number, fret: number, midi: number): 'root' | 'interval' | 'ghost' | null {
 		const exactMatch = highlights.find(
@@ -66,7 +65,7 @@
 			<div class="flex items-center" style="height: 40px;">
 				<!-- String label -->
 				<div class="w-10 shrink-0 text-center text-sm font-bold text-gray-400">
-					{STRING_LABELS[displayIndex]}
+					{stringLabels[displayIndex]}
 				</div>
 
 				<!-- Frets -->
