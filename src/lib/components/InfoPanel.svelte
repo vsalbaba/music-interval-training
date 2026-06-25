@@ -1,19 +1,22 @@
 <script lang="ts">
 	import { getIntervalTableRows, getChordTableRows } from '$lib/music/scale-degrees';
 	import { getSongSnippets } from '$lib/music/songs/index';
+	import { getNoteNames } from '$lib/i18n/translations';
+	import { locale } from '$lib/i18n/locale';
 
 	type Mode = 'intervals' | 'chords';
 
 	let { mode = 'intervals' as Mode }: { mode?: Mode } = $props();
 
-	const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+	let currentLocale = $derived($locale);
+	let noteNames = $derived(getNoteNames(currentLocale));
 
 	let selectedKey = $state(0);
 	let playingSnippet: string | null = $state(null);
 	let playingTimeout: ReturnType<typeof setTimeout> | null = null;
 
-	let intervalRows = $derived(getIntervalTableRows(selectedKey));
-	let chordRows = $derived(getChordTableRows(selectedKey));
+	let intervalRows = $derived(getIntervalTableRows(selectedKey, currentLocale));
+	let chordRows = $derived(getChordTableRows(selectedKey, currentLocale));
 
 	async function stopCurrent() {
 		const { stopAll } = await import('$lib/audio/engine');
@@ -47,7 +50,7 @@
 	<div class="shrink-0 border-b border-gray-800 px-3 py-3">
 		<div class="mb-1 text-xs text-gray-500 uppercase">Key</div>
 		<div class="flex flex-wrap gap-1">
-			{#each NOTE_NAMES as name, i}
+			{#each noteNames as name, i}
 				<button
 					class="rounded px-2 py-1 text-xs font-medium transition-colors
 						{selectedKey === i ? 'bg-indigo-500/60 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}"

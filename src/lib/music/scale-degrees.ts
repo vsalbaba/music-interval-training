@@ -1,7 +1,7 @@
 import { ALL_INTERVALS } from './intervals';
 import { ALL_CHORD_QUALITIES } from './chords';
-
-const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] as const;
+import { getNoteNames } from '$lib/i18n/translations';
+import type { Locale } from '$lib/i18n/locale';
 
 const SCALE_DEGREE_LABELS: Record<number, string> = {
 	0: '1',
@@ -23,8 +23,9 @@ export function getScaleDegreeLabel(semitones: number): string {
 	return SCALE_DEGREE_LABELS[semitones] ?? String(semitones);
 }
 
-export function getNoteName(pitchClass: number): string {
-	return NOTE_NAMES[((pitchClass % 12) + 12) % 12];
+export function getNoteName(pitchClass: number, locale: Locale = 'en'): string {
+	const names = getNoteNames(locale);
+	return names[((pitchClass % 12) + 12) % 12];
 }
 
 export interface IntervalTableRow {
@@ -36,15 +37,15 @@ export interface IntervalTableRow {
 	targetNote: string;
 }
 
-export function getIntervalTableRows(rootPitchClass: number): IntervalTableRow[] {
-	const rootNote = getNoteName(rootPitchClass);
+export function getIntervalTableRows(rootPitchClass: number, locale: Locale = 'en'): IntervalTableRow[] {
+	const rootNote = getNoteName(rootPitchClass, locale);
 	return ALL_INTERVALS.map((interval) => ({
 		degree: getScaleDegreeLabel(interval.semitones),
 		shortName: interval.shortName,
 		semitones: interval.semitones,
 		name: interval.name,
 		rootNote,
-		targetNote: getNoteName(rootPitchClass + interval.semitones)
+		targetNote: getNoteName(rootPitchClass + interval.semitones, locale)
 	}));
 }
 
@@ -55,11 +56,11 @@ export interface ChordTableRow {
 	notes: string[];
 }
 
-export function getChordTableRows(rootPitchClass: number): ChordTableRow[] {
+export function getChordTableRows(rootPitchClass: number, locale: Locale = 'en'): ChordTableRow[] {
 	return ALL_CHORD_QUALITIES.map((quality) => ({
 		formula: quality.formula,
 		name: quality.name,
 		hint: quality.hint,
-		notes: quality.intervals.map((i) => getNoteName(rootPitchClass + i))
+		notes: quality.intervals.map((i) => getNoteName(rootPitchClass + i, locale))
 	}));
 }

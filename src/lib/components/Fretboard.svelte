@@ -1,5 +1,9 @@
 <script lang="ts">
 	import { getFretboardNote, noteToString } from '$lib/music/notes';
+	import { getNoteNames } from '$lib/i18n/translations';
+	import { locale } from '$lib/i18n/locale';
+
+	let noteNames = $derived(getNoteNames($locale));
 
 	interface HighlightedNote {
 		midi: number;
@@ -100,7 +104,7 @@
 													: 'bg-transparent text-transparent group-hover:bg-gray-600 group-hover:text-gray-200'}
 										{isActive ? 'ring-2 ring-yellow-300 ring-offset-1 ring-offset-gray-900' : ''}"
 								>
-									{note.name}
+									{noteNames[note.midi % 12]}
 								</div>
 							{/if}
 						</button>

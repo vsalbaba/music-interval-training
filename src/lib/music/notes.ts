@@ -1,9 +1,9 @@
-export const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] as const;
+import { getNoteNames } from '$lib/i18n/translations';
 
-export type NoteName = (typeof NOTE_NAMES)[number];
+const NOTE_NAMES = getNoteNames('en');
 
 export interface Note {
-	name: NoteName;
+	name: string;
 	octave: number;
 	midi: number;
 }
