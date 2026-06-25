@@ -66,7 +66,11 @@ const translations = {
 				chord: 'Chord',
 				hint: 'Hint',
 				reference: 'Reference',
-				close: 'Close'
+				close: 'Close',
+				quality: 'Quality',
+				songs: 'Songs',
+				degreeReference: 'Degrees in key',
+				progressionPool: 'Progression pool'
 			}
 		}
 	},
@@ -135,7 +139,11 @@ const translations = {
 				chord: 'Akord',
 				hint: 'Nápověda',
 				reference: 'Přehled',
-				close: 'Zavřít'
+				close: 'Zavřít',
+				quality: 'Kvalita',
+				songs: 'Písně',
+				degreeReference: 'Stupně v tónině',
+				progressionPool: 'Přehled progresí'
 			}
 		}
 	}

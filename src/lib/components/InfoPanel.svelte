@@ -4,6 +4,7 @@
 	import { getSongSnippets } from '$lib/music/songs/index';
 	import { t, getNoteNames } from '$lib/i18n/translations';
 	import { locale } from '$lib/i18n/locale';
+	import { NASHVILLE_DEGREES, EASY_PROGRESSIONS, MEDIUM_PROGRESSIONS, HARD_PROGRESSIONS, degreeToChordName } from '$lib/music/progressions';
 
 	type Mode = 'intervals' | 'chords' | 'progressions';
 
@@ -27,6 +28,12 @@
 
 	let intervalRows = $derived(getIntervalTableRows(selectedKey, currentLocale));
 	let chordRows = $derived(getChordTableRows(selectedKey, currentLocale));
+
+	const progressionGroups = [
+		{ labelKey: 'ui.difficulty.easy' as const, progressions: EASY_PROGRESSIONS },
+		{ labelKey: 'ui.difficulty.medium' as const, progressions: MEDIUM_PROGRESSIONS },
+		{ labelKey: 'ui.difficulty.hard' as const, progressions: HARD_PROGRESSIONS }
+	];
 
 	function stopCurrent() {
 		audioEngine?.stopAll();
@@ -114,7 +121,7 @@
 					{/each}
 				</tbody>
 			</table>
-		{:else}
+		{:else if mode === 'chords'}
 			<table class="w-full text-sm">
 				<thead>
 					<tr class="text-left text-xs text-gray-500 uppercase">
@@ -135,6 +142,39 @@
 					{/each}
 				</tbody>
 			</table>
+		{:else if mode === 'progressions'}
+			<div class="mb-2 text-xs text-gray-500 uppercase">{t(currentLocale, 'ui.infoPanel.degreeReference')}</div>
+			<table class="mb-6 w-full text-sm">
+				<thead>
+					<tr class="text-left text-xs text-gray-500 uppercase">
+						<th class="pb-2 pr-2">{t(currentLocale, 'ui.infoPanel.degree')}</th>
+						<th class="pb-2 pr-2">{t(currentLocale, 'ui.infoPanel.chord')}</th>
+						<th class="pb-2">{t(currentLocale, 'ui.infoPanel.quality')}</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each NASHVILLE_DEGREES as deg}
+						<tr class="border-t border-gray-800/50">
+							<td class="py-1.5 pr-2 font-mono text-xs text-indigo-400">{deg.roman}</td>
+							<td class="py-1.5 pr-2 text-gray-300">{degreeToChordName(deg.roman, selectedKey)}</td>
+							<td class="py-1.5 text-xs text-gray-500">{deg.quality}</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+
+			<div class="mb-2 text-xs text-gray-500 uppercase">{t(currentLocale, 'ui.infoPanel.progressionPool')}</div>
+			{#each progressionGroups as group}
+				<div class="mb-3">
+					<div class="mb-1 text-xs font-medium text-gray-400">{t(currentLocale, group.labelKey)}</div>
+					{#each group.progressions as prog}
+						<div class="border-t border-gray-800/50 py-1.5">
+							<div class="font-mono text-sm text-indigo-400">{prog.nashville}</div>
+							<div class="text-xs text-gray-500">{prog.songs.join(', ')}</div>
+						</div>
+					{/each}
+				</div>
+			{/each}
 		{/if}
 	</div>
 
