@@ -25,7 +25,7 @@ export const EASY_INTERVALS = ALL_INTERVALS.filter((i) =>
 );
 
 export const MEDIUM_INTERVALS = ALL_INTERVALS.filter((i) =>
-	[0, 3, 4, 5, 7, 8, 9, 12].includes(i.semitones)
+	[3, 4, 5, 7, 8, 9, 12].includes(i.semitones)
 );
 
 export type IntervalDifficulty = 'easy' | 'medium' | 'hard';
@@ -33,7 +33,7 @@ export type IntervalDifficulty = 'easy' | 'medium' | 'hard';
 export const INTERVAL_DIFFICULTIES: { key: IntervalDifficulty; label: string; intervals: Interval[] }[] = [
 	{ key: 'easy', label: 'Easy', intervals: EASY_INTERVALS },
 	{ key: 'medium', label: 'Medium', intervals: MEDIUM_INTERVALS },
-	{ key: 'hard', label: 'Hard', intervals: ALL_INTERVALS }
+	{ key: 'hard', label: 'Hard', intervals: ALL_INTERVALS.filter((i) => i.semitones !== 0) }
 ];
 
 export function getIntervalBySemitones(semitones: number): Interval | undefined {
