@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { CHORD_DIFFICULTIES, type ChordQuality, type ChordDifficulty } from '$lib/music/chords';
+	import { CHORD_GROUPS, type ChordQuality, type ChordGroup } from '$lib/music/chords';
 	import { generateChordQuestion, getChordVoicingNotes, type ChordQuestion } from '$lib/exercise/chord-exercise';
 	import { midiToNote, noteToString } from '$lib/music/notes';
 	import { recordAnswer } from '$lib/stats/store';
@@ -22,8 +22,8 @@
 
 	let currentLocale = $derived($locale);
 
-	let difficulty: ChordDifficulty = $state('triads');
-	let currentDiff = $derived(CHORD_DIFFICULTIES.find((d) => d.key === difficulty)!);
+	let difficulty: ChordGroup = $state('triads');
+	let currentDiff = $derived(CHORD_GROUPS.find((d) => d.key === difficulty)!);
 
 	let question: ChordQuestion | null = $state(null);
 	let selectedAnswer: ChordQuality | null = $state(null);
@@ -105,7 +105,7 @@
 		if (autoplay) playCurrentQuestion();
 	}
 
-	function switchDifficulty(diff: ChordDifficulty) {
+	function switchDifficulty(diff: ChordGroup) {
 		difficulty = diff;
 		score = { correct: 0, total: 0 };
 		newQuestion();
@@ -177,7 +177,7 @@
 
 <!-- Difficulty selector -->
 <div class="mb-6 flex gap-1">
-	{#each CHORD_DIFFICULTIES as diff}
+	{#each CHORD_GROUPS as diff}
 		<button
 			class="rounded px-3 py-1 text-xs font-medium transition-colors
 				{difficulty === diff.key ? 'bg-indigo-500/60 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}"
@@ -223,7 +223,7 @@
 		</div>
 		{#if question}
 			{@const rootName = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'][question.rootMidi % 12]}
-			{@const suffixMap: Record<string, string> = { Maj: '', Min: 'm', Dim: 'dim', Aug: 'aug', Sus2: 'sus2', Sus4: 'sus4', Dom7: '7', Maj7: 'maj7', Min7: 'm7' }}
+			{@const suffixMap: Record<string, string> = { Maj: '', Min: 'm', Dim: 'dim', Aug: 'aug', Sus2: 'sus2', Sus4: 'sus4', '5': '5', Dom7: '7', Maj7: 'maj7', Min7: 'm7', Dim7: 'dim7', m7b5: 'm7b5', Aug7: 'aug7', mMaj7: 'mMaj7', '7sus4': '7sus4', '6': '6', m6: 'm6', add9: 'add9', add11: 'add11' }}
 			{@const suffix = suffixMap[question.quality.shortName] ?? question.quality.shortName}
 			<div class="mt-1 text-xs text-gray-500">
 				{rootName}{suffix} -- {question.shape.family}-shape at fret {question.offset}

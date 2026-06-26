@@ -26,9 +26,19 @@ const translations = {
 			Aug: { name: 'Augmented', hint: 'Major with sharp 5th' },
 			Sus2: { name: 'Sus2', hint: 'Major, 3rd replaced by 2nd' },
 			Sus4: { name: 'Sus4', hint: 'Major, 3rd replaced by 4th' },
+			'5': { name: 'Power Chord', hint: 'Root and 5th only, no 3rd' },
 			Dom7: { name: 'Dominant 7', hint: 'Major + flat 7th' },
 			Maj7: { name: 'Major 7', hint: 'Major + natural 7th' },
-			Min7: { name: 'Minor 7', hint: 'Minor + flat 7th' }
+			Min7: { name: 'Minor 7', hint: 'Minor + flat 7th' },
+			Dim7: { name: 'Diminished 7', hint: 'Fully diminished, symmetric' },
+			m7b5: { name: 'Half-Diminished', hint: 'Diminished triad + minor 7th' },
+			Aug7: { name: 'Augmented 7', hint: 'Augmented triad + flat 7th' },
+			mMaj7: { name: 'Minor-Major 7', hint: 'Minor triad + natural 7th' },
+			'7sus4': { name: '7sus4', hint: 'Dominant 7 with 4th instead of 3rd' },
+			'6': { name: 'Major 6', hint: 'Major triad + major 6th' },
+			m6: { name: 'Minor 6', hint: 'Minor triad + major 6th' },
+			add9: { name: 'Add 9', hint: 'Major triad + 9th (no 7th)' },
+			add11: { name: 'Add 11', hint: 'Major triad + 11th (no 7th)' }
 		},
 		ui: {
 			exerciseType: { intervals: 'Intervals', chords: 'Chords', progressions: 'Progressions' },
@@ -37,7 +47,9 @@ const translations = {
 				medium: 'Medium',
 				hard: 'Hard',
 				triads: 'Triads',
-				'with-7ths': 'With 7ths'
+				sevenths: 'Sevenths',
+				extensions: 'Extensions',
+				all: 'All'
 			},
 			stats: {
 				heading: 'Stats',
@@ -99,9 +111,19 @@ const translations = {
 			Aug: { name: 'Zvětšený', hint: 'Dur se zvětšenou kvintou' },
 			Sus2: { name: 'Sus2', hint: 'Dur, tercie nahrazena sekundou' },
 			Sus4: { name: 'Sus4', hint: 'Dur, tercie nahrazena kvartou' },
+			'5': { name: 'Power akord', hint: 'Jen základní tón a kvinta' },
 			Dom7: { name: 'Dominantní 7', hint: 'Dur + malá septima' },
 			Maj7: { name: 'Dur 7', hint: 'Dur + velká septima' },
-			Min7: { name: 'Moll 7', hint: 'Moll + malá septima' }
+			Min7: { name: 'Moll 7', hint: 'Moll + malá septima' },
+			Dim7: { name: 'Zmenšený 7', hint: 'Plně zmenšený, symetrický' },
+			m7b5: { name: 'Polozmenšený', hint: 'Zmenšený kvintakord + malá septima' },
+			Aug7: { name: 'Zvětšený 7', hint: 'Zvětšený kvintakord + malá septima' },
+			mMaj7: { name: 'Moll-dur 7', hint: 'Moll kvintakord + velká septima' },
+			'7sus4': { name: '7sus4', hint: 'Dominantní 7 s kvartou místo tercie' },
+			'6': { name: 'Dur 6', hint: 'Dur kvintakord + velká sexta' },
+			m6: { name: 'Moll 6', hint: 'Moll kvintakord + velká sexta' },
+			add9: { name: 'Add 9', hint: 'Dur kvintakord + nóna (bez septimy)' },
+			add11: { name: 'Add 11', hint: 'Dur kvintakord + undecima (bez septimy)' }
 		},
 		ui: {
 			exerciseType: { intervals: 'Intervaly', chords: 'Akordy', progressions: 'Progrese' },
@@ -110,7 +132,9 @@ const translations = {
 				medium: 'Střední',
 				hard: 'Těžké',
 				triads: 'Triády',
-				'with-7ths': 'Se septimami'
+				sevenths: 'Septimy',
+				extensions: 'Rozšířené',
+				all: 'Vše'
 			},
 			stats: {
 				heading: 'Statistiky',
