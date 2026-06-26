@@ -62,6 +62,10 @@
 
 	function getHighlight(stringIndex: number, fret: number, midi: number): 'root' | 'interval' | 'ghost' | 'selected' | 'correct' | 'wrong' | null {
 		if (selectable && isSelected(stringIndex, fret)) {
+			const rootMatch = highlights.some(
+				(h) => h.stringIndex === stringIndex && h.fret === fret && h.role === 'root'
+			);
+			if (rootMatch) return 'root';
 			return 'selected';
 		}
 
@@ -150,6 +154,7 @@
 							{:else}
 								<!-- Note dot -->
 								{@const isActive = highlight !== null && highlight !== 'ghost' && activeNoteMidi !== null && note.midi === activeNoteMidi}
+								{@const isRootSelected = highlight === 'root' && selectable && isSelected(displayIndex, fret)}
 								{@const tapState = tappedNotes[tapKey(displayIndex, fret)]}
 								<div
 									class="relative z-10 flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold transition-all
@@ -170,7 +175,7 @@
 																		? 'bg-gray-600 text-gray-200 opacity-0 duration-[2000ms]'
 																		: 'bg-gray-600 text-gray-200'
 																	: 'bg-transparent text-transparent group-hover:bg-gray-600 group-hover:text-gray-200'}
-										{isActive ? 'ring-2 ring-yellow-300 ring-offset-1 ring-offset-gray-900' : ''}"
+										{isActive ? 'ring-2 ring-yellow-300 ring-offset-1 ring-offset-gray-900' : isRootSelected ? 'ring-2 ring-blue-400 ring-offset-1 ring-offset-gray-900' : ''}"
 								>
 									{noteNames[note.midi % 12]}
 								</div>

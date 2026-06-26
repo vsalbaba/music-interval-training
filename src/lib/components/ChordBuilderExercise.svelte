@@ -88,8 +88,9 @@
 		hasChecked = false;
 		isCorrect = null;
 		validation = null;
-		selectedFrets = [];
-		question = generateChordBuilderQuestion(difficulty);
+		const q = generateChordBuilderQuestion(difficulty);
+		selectedFrets = [{ stringIndex: q.rootHint.stringIndex, fret: q.rootHint.fret }];
+		question = q;
 	}
 
 	function switchDifficulty(diff: ChordGroup) {
