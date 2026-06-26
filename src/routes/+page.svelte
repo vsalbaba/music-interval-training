@@ -5,6 +5,7 @@
 	import IntervalExercise from '$lib/components/IntervalExercise.svelte';
 	import ChordExercise from '$lib/components/ChordExercise.svelte';
 	import ProgressionExercise from '$lib/components/ProgressionExercise.svelte';
+	import ChordBuilderExercise from '$lib/components/ChordBuilderExercise.svelte';
 	import { getAccuracy, getOverallStats, clearStats, type AccuracyEntry } from '$lib/stats/store';
 	import { locale } from '$lib/i18n/locale';
 	import { t, translateStatsName } from '$lib/i18n/translations';
@@ -16,7 +17,7 @@
 	let currentView: View = $state('exercise');
 	let showInfo = $state(false);
 
-	type ExerciseType = 'intervals' | 'chords' | 'progressions';
+	type ExerciseType = 'intervals' | 'chords' | 'progressions' | 'chordBuilder';
 	let exerciseType: ExerciseType = $state('intervals');
 
 	let audioEngine: typeof import('$lib/audio/engine') | null = $state(null);
@@ -24,6 +25,12 @@
 	let highlights: HighlightedNote[] = $state([]);
 	let mutedStrings: MutedString[] = $state([]);
 	let activeNoteMidi: number | null = $state(null);
+	let selectedFrets: import('$lib/types/fretboard').SelectedFret[] = $state([]);
+	let fretboardSelectable = $state(false);
+	function getInfoPanelMode(et: ExerciseType): 'intervals' | 'chords' | 'progressions' {
+		return et === 'chordBuilder' ? 'chords' : et;
+	}
+	let infoPanelMode = $derived(getInfoPanelMode(exerciseType));
 
 	let intervalAccuracy: AccuracyEntry[] = $state([]);
 	let chordAccuracy: AccuracyEntry[] = $state([]);
@@ -36,6 +43,10 @@
 
 	function switchExercise(type: ExerciseType) {
 		exerciseType = type;
+		if (type !== 'chordBuilder') {
+			fretboardSelectable = false;
+			selectedFrets = [];
+		}
 	}
 
 	function showStats() {
@@ -220,6 +231,13 @@
 						{t(currentLocale, 'ui.exerciseType.progressions')}
 					</button>
 					<button
+						class="rounded-lg px-4 py-2 text-sm font-semibold transition-colors
+							{exerciseType === 'chordBuilder' ? 'bg-indigo-600' : 'bg-gray-700 hover:bg-gray-600'}"
+						onclick={() => switchExercise('chordBuilder')}
+					>
+						{t(currentLocale, 'ui.exerciseType.chordBuilder')}
+					</button>
+					<button
 						class="rounded-lg bg-gray-700 px-4 py-2 text-sm font-semibold transition-colors hover:bg-gray-600"
 						onclick={showStats}
 					>
@@ -232,15 +250,17 @@
 					<IntervalExercise {audioEngine} bind:highlights bind:mutedStrings bind:activeNoteMidi />
 				{:else if exerciseType === 'chords'}
 					<ChordExercise {audioEngine} bind:highlights bind:mutedStrings bind:activeNoteMidi />
-				{:else}
+				{:else if exerciseType === 'progressions'}
 					<ProgressionExercise {audioEngine} bind:highlights bind:mutedStrings bind:activeNoteMidi />
+				{:else}
+					<ChordBuilderExercise {audioEngine} bind:highlights bind:mutedStrings bind:activeNoteMidi bind:selectedFrets bind:selectable={fretboardSelectable} />
 				{/if}
 			</div>
 
 			<!-- Info Panel: desktop split -->
 			{#if showInfo}
 				<div class="hidden min-h-0 w-1/2 border-l border-gray-800 md:block">
-					<InfoPanel mode={exerciseType} />
+					<InfoPanel mode={infoPanelMode} />
 				</div>
 			{/if}
 
@@ -258,7 +278,7 @@
 							</button>
 						</div>
 						<div class="min-h-0 flex-1">
-							<InfoPanel mode={exerciseType} />
+							<InfoPanel mode={infoPanelMode} />
 						</div>
 					</div>
 				</div>
@@ -268,6 +288,6 @@
 
 	<!-- Fretboard -->
 	<section class="shrink-0 border-t border-gray-800 bg-gray-900/50 py-4">
-		<Fretboard {highlights} {mutedStrings} {activeNoteMidi} />
+		<Fretboard {highlights} {mutedStrings} {activeNoteMidi} selectable={fretboardSelectable} bind:selectedFrets />
 	</section>
 </div>

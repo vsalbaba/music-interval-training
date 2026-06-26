@@ -41,7 +41,7 @@ const translations = {
 			add11: { name: 'Add 11', hint: 'Major triad + 11th (no 7th)' }
 		},
 		ui: {
-			exerciseType: { intervals: 'Intervals', chords: 'Chords', progressions: 'Progressions' },
+			exerciseType: { intervals: 'Intervals', chords: 'Chords', progressions: 'Progressions', chordBuilder: 'Chord Builder' },
 			difficulty: {
 				easy: 'Easy',
 				medium: 'Medium',
@@ -68,6 +68,10 @@ const translations = {
 				next: 'Next'
 			},
 			openChords: 'Open chords only',
+			chordBuilder: {
+				buildPrompt: 'Build',
+				check: 'Check Answer'
+			},
 			score: 'Score:',
 			infoPanel: {
 				key: 'Key',
@@ -127,7 +131,7 @@ const translations = {
 			add11: { name: 'Add 11', hint: 'Durový kvintakord + undecima (bez septimy)' }
 		},
 		ui: {
-			exerciseType: { intervals: 'Intervaly', chords: 'Akordy', progressions: 'Progrese' },
+			exerciseType: { intervals: 'Intervaly', chords: 'Akordy', progressions: 'Progrese', chordBuilder: 'Stavba akordů' },
 			difficulty: {
 				easy: 'Lehké',
 				medium: 'Střední',
@@ -154,6 +158,10 @@ const translations = {
 				next: 'Další'
 			},
 			openChords: 'Jen otevřené akordy',
+			chordBuilder: {
+				buildPrompt: 'Postav',
+				check: 'Zkontrolovat'
+			},
 			score: 'Skóre:',
 			infoPanel: {
 				key: 'Tónina',
