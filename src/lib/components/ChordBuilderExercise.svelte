@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { CHORD_GROUPS, type ChordGroup } from '$lib/music/chords';
-	import { generateChordBuilderQuestion, validateChordBuilderAnswer, findReferenceVoicing, type ChordBuilderQuestion, type ChordBuilderValidation } from '$lib/exercise/chord-builder';
+	import { generateChordBuilderQuestion, validateChordBuilderAnswer, findReferenceVoicing, type ChordBuilderQuestion, type ChordBuilderValidation, type ReferenceVoicing } from '$lib/exercise/chord-builder';
 	import { STANDARD_TUNING, midiToNote, noteToString } from '$lib/music/notes';
 	import { locale } from '$lib/i18n/locale';
 	import { t, getChordName, getNoteNames } from '$lib/i18n/translations';
@@ -35,6 +35,7 @@
 	let isCorrect: boolean | null = $state(null);
 	let validation: ChordBuilderValidation | null = $state(null);
 	let showReference = $state(false);
+	let referenceVoicing: ReferenceVoicing | null = $state(null);
 	let score = $state({ correct: 0, total: 0 });
 	let isPlaying = $state(false);
 
@@ -52,9 +53,8 @@
 		}
 
 		if (hasChecked && showReference && !isCorrect) {
-			const ref = findReferenceVoicing(question);
-			if (ref) {
-				highlights = ref.notes.map(n => ({
+			if (referenceVoicing) {
+				highlights = referenceVoicing.notes.map(n => ({
 					midi: n.midi,
 					role: n.isRoot ? 'root' as const : 'interval' as const,
 					stringIndex: n.stringIndex,
@@ -105,7 +105,24 @@
 		showReference = false;
 		const q = generateChordBuilderQuestion(difficulty);
 		selectedFrets = [{ stringIndex: q.rootHint.stringIndex, fret: q.rootHint.fret }];
+		referenceVoicing = findReferenceVoicing(q);
 		question = q;
+		playChord();
+	}
+
+	async function playChord() {
+		if (!audioEngine || !referenceVoicing || isPlaying) return;
+		isPlaying = true;
+		try {
+			const notes = referenceVoicing.notes
+				.slice()
+				.sort((a, b) => a.stringIndex - b.stringIndex)
+				.map(n => noteToString(midiToNote(n.midi)));
+			await audioEngine.playChordPattern(notes);
+		} catch {
+			// audio error
+		}
+		isPlaying = false;
 	}
 
 	function switchDifficulty(diff: ChordGroup) {
@@ -147,13 +164,12 @@
 				showReference = true;
 			}
 
-			const ref = findReferenceVoicing(question!);
-			if (ref) {
-				const refNotes = ref.notes
+			if (referenceVoicing) {
+				const refNotes = referenceVoicing.notes
 					.slice()
 					.sort((a, b) => a.stringIndex - b.stringIndex)
 					.map(n => noteToString(midiToNote(n.midi)));
-				await audioEngine!.playChordPattern(refNotes);
+				await audioEngine.playChordPattern(refNotes);
 				const refPlayTime = refNotes.length * 500 + 200 + refNotes.length * 40 + 200;
 				await new Promise(resolve => setTimeout(resolve, refPlayTime));
 			}
@@ -201,6 +217,14 @@
 	{/if}
 
 	<div class="flex gap-4">
+		<button
+			class="rounded-lg bg-indigo-600 px-6 py-3 font-semibold transition-colors hover:bg-indigo-500 disabled:opacity-50"
+			onclick={playChord}
+			disabled={isPlaying}
+		>
+			{isPlaying ? t(currentLocale, 'ui.play.playing') : t(currentLocale, 'ui.play.play')}
+		</button>
+
 		{#if !hasChecked}
 			<button
 				class="rounded-lg bg-indigo-600 px-6 py-3 font-semibold transition-colors hover:bg-indigo-500 disabled:opacity-50"
