@@ -34,6 +34,7 @@
 
 	let intervalAccuracy: AccuracyEntry[] = $state([]);
 	let chordAccuracy: AccuracyEntry[] = $state([]);
+	let chordBuilderAccuracy: AccuracyEntry[] = $state([]);
 	let progressionAccuracy: AccuracyEntry[] = $state([]);
 	let overallStats = $state({ total: 0, correct: 0, percentage: 0 });
 
@@ -52,6 +53,7 @@
 	function showStats() {
 		intervalAccuracy = getAccuracy('interval');
 		chordAccuracy = getAccuracy('chord');
+		chordBuilderAccuracy = getAccuracy('chord-builder');
 		progressionAccuracy = getAccuracy('progression');
 		overallStats = getOverallStats();
 		currentView = 'stats';
@@ -65,6 +67,7 @@
 		clearStats();
 		intervalAccuracy = [];
 		chordAccuracy = [];
+		chordBuilderAccuracy = [];
 		progressionAccuracy = [];
 		overallStats = { total: 0, correct: 0, percentage: 0 };
 	}
@@ -124,6 +127,29 @@
 						{#each chordAccuracy as entry}
 							<div class="mb-2 flex items-center justify-between rounded bg-gray-800/30 px-3 py-2">
 								<span class="text-sm">{translateStatsName(currentLocale, 'chord', entry.name)}</span>
+								<div class="flex items-center gap-3">
+									<div class="h-2 w-24 overflow-hidden rounded-full bg-gray-700">
+										<div
+											class="h-full rounded-full {entry.percentage < 60 ? 'bg-red-500' : entry.percentage < 80 ? 'bg-yellow-500' : 'bg-green-500'}"
+											style="width: {entry.percentage}%"
+										></div>
+									</div>
+									<span class="w-16 text-right text-sm {entry.percentage < 60 ? 'text-red-400' : 'text-gray-300'}">
+										{entry.percentage}%
+										<span class="text-xs text-gray-500">({entry.total})</span>
+									</span>
+								</div>
+							</div>
+						{/each}
+					</div>
+				{/if}
+
+				{#if chordBuilderAccuracy.length > 0}
+					<div class="mb-6">
+						<h3 class="mb-3 text-sm font-semibold text-gray-400 uppercase">{t(currentLocale, 'ui.exerciseType.chordBuilder')}</h3>
+						{#each chordBuilderAccuracy as entry}
+							<div class="mb-2 flex items-center justify-between rounded bg-gray-800/30 px-3 py-2">
+								<span class="text-sm">{translateStatsName(currentLocale, 'chord-builder', entry.name)}</span>
 								<div class="flex items-center gap-3">
 									<div class="h-2 w-24 overflow-hidden rounded-full bg-gray-700">
 										<div

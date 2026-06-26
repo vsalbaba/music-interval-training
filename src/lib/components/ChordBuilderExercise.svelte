@@ -5,6 +5,7 @@
 	import { STANDARD_TUNING, midiToNote, noteToString } from '$lib/music/notes';
 	import { locale } from '$lib/i18n/locale';
 	import { t, getChordName, getNoteNames } from '$lib/i18n/translations';
+	import { recordAnswer } from '$lib/stats/store';
 	import type { HighlightedNote, MutedString, SelectedFret } from '$lib/types/fretboard';
 
 	let {
@@ -105,6 +106,7 @@
 		validation = v;
 		score.total++;
 		if (isCorrect) score.correct++;
+		recordAnswer('chord-builder', question.quality.shortName, isCorrect);
 
 		await playFeedback();
 	}

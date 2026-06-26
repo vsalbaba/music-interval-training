@@ -240,10 +240,12 @@ export function getChordHint(locale: Locale, shortName: string): string {
 	return chords[shortName]?.hint ?? '';
 }
 
-export function translateStatsName(locale: Locale, type: 'interval' | 'chord' | 'progression', englishName: string): string {
+export function translateStatsName(locale: Locale, type: 'interval' | 'chord' | 'progression' | 'chord-builder', englishName: string): string {
 	if (type === 'interval') {
 		const semitones = translations.en.intervals.indexOf(englishName as (typeof translations.en.intervals)[number]);
 		if (semitones >= 0) return getIntervalName(locale, semitones);
+	} else if (type === 'chord-builder') {
+		return getChordName(locale, englishName);
 	} else {
 		const enChords = translations.en.chords as Record<string, { name: string }>;
 		for (const [shortName, entry] of Object.entries(enChords)) {

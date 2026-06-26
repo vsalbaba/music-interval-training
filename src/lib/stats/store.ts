@@ -1,7 +1,7 @@
 const STORAGE_KEY = 'interval-training-stats';
 
 export interface AnswerRecord {
-	type: 'interval' | 'chord' | 'progression';
+	type: 'interval' | 'chord' | 'progression' | 'chord-builder';
 	name: string;
 	correct: boolean;
 	timestamp: number;
@@ -26,7 +26,7 @@ function save(stats: Stats) {
 	localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
 }
 
-export function recordAnswer(type: 'interval' | 'chord' | 'progression', name: string, correct: boolean) {
+export function recordAnswer(type: 'interval' | 'chord' | 'progression' | 'chord-builder', name: string, correct: boolean) {
 	const stats = load();
 	stats.answers.push({ type, name, correct, timestamp: Date.now() });
 	save(stats);
@@ -39,7 +39,7 @@ export interface AccuracyEntry {
 	percentage: number;
 }
 
-export function getAccuracy(type: 'interval' | 'chord' | 'progression'): AccuracyEntry[] {
+export function getAccuracy(type: 'interval' | 'chord' | 'progression' | 'chord-builder'): AccuracyEntry[] {
 	const stats = load();
 	const filtered = stats.answers.filter((a) => a.type === type);
 	const grouped = new Map<string, { correct: number; total: number }>();
