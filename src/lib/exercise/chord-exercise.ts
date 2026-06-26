@@ -30,6 +30,29 @@ const FAMILY_ROOT_STRING: Record<CagedFamily, number> = {
 	'D': 2
 };
 
+export const CHORD_SUFFIX_MAP: Record<string, string> = {
+	Maj: '', Min: 'm', Dim: 'dim', Aug: 'aug', Sus2: 'sus2', Sus4: 'sus4',
+	'5': '5', Dom7: '7', Maj7: 'maj7', Min7: 'm7', Dim7: 'dim7',
+	m7b5: 'm7b5', Aug7: 'aug7', mMaj7: 'mMaj7', '7sus4': '7sus4',
+	'6': '6', m6: 'm6', add9: 'add9', add11: 'add11'
+};
+
+export const FAMILY_ROOT_NAMES: Record<CagedFamily, string> = {
+	C: 'C', A: 'A', G: 'G', E: 'E', D: 'D'
+};
+
+export interface OpenChordOption {
+	label: string;
+	quality: ChordQuality;
+	rootNote: string;
+	family: CagedFamily;
+}
+
+export function chordLabel(rootNote: string, shortName: string): string {
+	const suffix = CHORD_SUFFIX_MAP[shortName] ?? shortName;
+	return rootNote + suffix;
+}
+
 export function getChordVoicing(family: CagedFamily, offset: number, quality: ChordQuality): number[] {
 	return getChordVoicingNotes(family, offset, quality).map(n => n.midi);
 }
@@ -63,6 +86,41 @@ export function getChordVoicingNotes(family: CagedFamily, offset: number, qualit
 
 export interface GenerateChordOptions {
 	openOnly?: boolean;
+}
+
+export function generateOpenChordOptions(
+	question: ChordQuestion,
+	qualities: ChordQuality[]
+): OpenChordOption[] {
+	const correctRoot = FAMILY_ROOT_NAMES[question.shape.family];
+	const correctLabel = chordLabel(correctRoot, question.quality.shortName);
+	const correct: OpenChordOption = {
+		label: correctLabel,
+		quality: question.quality,
+		rootNote: correctRoot,
+		family: question.shape.family
+	};
+
+	const families: CagedFamily[] = ['C', 'A', 'G', 'E', 'D'];
+	const seen = new Set<string>([correctLabel]);
+	const pool: OpenChordOption[] = [];
+
+	for (const family of families) {
+		const root = FAMILY_ROOT_NAMES[family];
+		for (const q of qualities) {
+			const hasShape = CAGED_SHAPES.some(s => s.family === family && s.quality === q.name);
+			if (!hasShape) continue;
+			const label = chordLabel(root, q.shortName);
+			if (seen.has(label)) continue;
+			seen.add(label);
+			pool.push({ label, quality: q, rootNote: root, family });
+		}
+	}
+
+	const shuffled = pool.sort(() => Math.random() - 0.5);
+	const distractors = shuffled.slice(0, Math.min(shuffled.length, 7));
+
+	return [correct, ...distractors].sort(() => Math.random() - 0.5);
 }
 
 export function generateChordQuestion(qualities: ChordQuality[], options?: GenerateChordOptions): ChordQuestion {
