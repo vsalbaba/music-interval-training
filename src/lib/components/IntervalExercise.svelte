@@ -179,13 +179,16 @@
 		{/if}
 	</div>
 
-	{#if hasAnswered}
-		<div class="mt-4 text-lg font-semibold {isCorrect ? 'text-green-400' : 'text-red-400'}">
+	{#if hasAnswered && question}
+		<div class="mt-4 text-center text-lg font-semibold {isCorrect ? 'text-green-400' : 'text-red-400'}">
 			{#if isCorrect}
 				{t(currentLocale, 'ui.feedback.correct')}
 			{:else}
 				{t(currentLocale, 'ui.feedback.wrong').replace('{name}', correctAnswerName)}
 			{/if}
+			<div class="text-sm font-normal text-gray-400">
+				{correctAnswerName} {question.rootNoteString} - {question.intervalNoteString}
+			</div>
 		</div>
 	{/if}
 </section>
