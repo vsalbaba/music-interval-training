@@ -34,6 +34,7 @@
 	let hasChecked = $state(false);
 	let isCorrect: boolean | null = $state(null);
 	let validation: ChordBuilderValidation | null = $state(null);
+	let showReference = $state(false);
 	let score = $state({ correct: 0, total: 0 });
 	let isPlaying = $state(false);
 
@@ -47,6 +48,19 @@
 	$effect(() => {
 		if (!question) {
 			highlights = [];
+			return;
+		}
+
+		if (hasChecked && showReference && !isCorrect) {
+			const ref = findReferenceVoicing(question);
+			if (ref) {
+				highlights = ref.notes.map(n => ({
+					midi: n.midi,
+					role: n.isRoot ? 'root' as const : 'interval' as const,
+					stringIndex: n.stringIndex,
+					fret: n.fret
+				}));
+			}
 			return;
 		}
 
@@ -88,6 +102,7 @@
 		hasChecked = false;
 		isCorrect = null;
 		validation = null;
+		showReference = false;
 		const q = generateChordBuilderQuestion(difficulty);
 		selectedFrets = [{ stringIndex: q.rootHint.stringIndex, fret: q.rootHint.fret }];
 		question = q;
@@ -127,6 +142,10 @@
 			const userPlayTime = userNotes.length * 500 + 200 + userNotes.length * 40 + 400;
 
 			await new Promise(resolve => setTimeout(resolve, userPlayTime));
+
+			if (!isCorrect) {
+				showReference = true;
+			}
 
 			const ref = findReferenceVoicing(question!);
 			if (ref) {
@@ -243,6 +262,12 @@
 					Missing: {validation.missingPitchClasses.map(pc => noteNames[pc]).join(', ')}
 				</div>
 			{/if}
+		</div>
+	{/if}
+
+	{#if showReference && !isCorrect}
+		<div class="mt-4 text-sm font-medium text-amber-400/80">
+			{t(currentLocale, 'ui.chordBuilder.referenceVoicing')}
 		</div>
 	{/if}
 </section>

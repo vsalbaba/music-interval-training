@@ -70,7 +70,8 @@ const translations = {
 			openChords: 'Open chords only',
 			chordBuilder: {
 				buildPrompt: 'Build',
-				check: 'Check Answer'
+				check: 'Check Answer',
+				referenceVoicing: 'One possible voicing:'
 			},
 			score: 'Score:',
 			infoPanel: {
@@ -160,7 +161,8 @@ const translations = {
 			openChords: 'Jen otevřené akordy',
 			chordBuilder: {
 				buildPrompt: 'Postav',
-				check: 'Zkontrolovat'
+				check: 'Zkontrolovat',
+				referenceVoicing: 'Jeden možný voicing:'
 			},
 			score: 'Skóre:',
 			infoPanel: {
