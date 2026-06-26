@@ -38,17 +38,23 @@ function allSoundedNotes(voicing: AbsoluteVoicing): AbsoluteStringNote[] {
 	return voicing.strings.filter((s): s is AbsoluteStringNote => s !== null);
 }
 
-export function getChordVoicingNotes(family: CagedFamily, offset: number, quality: ChordQuality): AbsoluteStringNote[] {
+export function getChordVoicingNotes(family: CagedFamily, offset: number, quality: ChordQuality, targetRootMidi?: number): AbsoluteStringNote[] {
 	const shape = CAGED_SHAPES.find(s => s.family === family && s.quality === quality.name);
 	if (shape) {
-		const voicing = applyOffset(shape, offset);
+		let effectiveOffset = offset;
+		if (targetRootMidi !== undefined) {
+			const rootFretInShape = shape.frets[shape.rootStringIndex]!;
+			effectiveOffset = targetRootMidi - STANDARD_TUNING[shape.rootStringIndex] - rootFretInShape;
+		}
+		const voicing = applyOffset(shape, effectiveOffset);
 		return allSoundedNotes(voicing);
 	}
 	const rootStringIndex = FAMILY_ROOT_STRING[family];
-	const rootMidi = STANDARD_TUNING[rootStringIndex] + offset;
+	const rootMidi = targetRootMidi ?? (STANDARD_TUNING[rootStringIndex] + offset);
+	const rootOffset = rootMidi - STANDARD_TUNING[rootStringIndex];
 	return quality.intervals.map((interval, i) => ({
 		stringIndex: rootStringIndex,
-		fret: offset + interval,
+		fret: rootOffset + interval,
 		midi: rootMidi + interval,
 		pitchClass: (rootMidi + interval) % 12,
 		isRoot: i === 0

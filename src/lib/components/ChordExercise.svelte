@@ -143,7 +143,7 @@
 	async function previewChord(quality: ChordQuality) {
 		if (isPlaying || !question) return;
 		isPlaying = true;
-		const voicingNotes = getChordVoicingNotes(question.shape.family, question.offset, quality);
+		const voicingNotes = getChordVoicingNotes(question.shape.family, question.offset, quality, question.rootMidi);
 		const midis = voicingNotes.map(n => n.midi);
 		if (hasAnswered) {
 			previewHighlights = voicingNotes.map((note) => ({
