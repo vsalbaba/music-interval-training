@@ -11,8 +11,8 @@ export const TRIAD_QUALITIES: ChordQuality[] = [
 	{ name: 'Minor', shortName: 'Min', intervals: [0, 3, 7], formula: '1-b3-5', hint: 'Major with flat 3rd' },
 	{ name: 'Diminished', shortName: 'Dim', intervals: [0, 3, 6], formula: '1-b3-b5', hint: 'Minor with flat 5th' },
 	{ name: 'Augmented', shortName: 'Aug', intervals: [0, 4, 8], formula: '1-3-#5', hint: 'Major with sharp 5th' },
-	{ name: 'Sus2', shortName: 'Sus2', intervals: [0, 2, 7], formula: '1-2-5', hint: 'Major, 3rd replaced by 2nd' },
-	{ name: 'Sus4', shortName: 'Sus4', intervals: [0, 5, 7], formula: '1-4-5', hint: 'Major, 3rd replaced by 4th' },
+	{ name: 'Sus2', shortName: 'Sus2', intervals: [0, 2, 7], formula: '1-2-5', hint: '3rd replaced by 2nd' },
+	{ name: 'Sus4', shortName: 'Sus4', intervals: [0, 5, 7], formula: '1-4-5', hint: '3rd replaced by 4th' },
 	{ name: 'Power Chord', shortName: '5', intervals: [0, 7], formula: '1-5', hint: 'Root and 5th only, no 3rd' }
 ];
 
