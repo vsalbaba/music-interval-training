@@ -51,19 +51,26 @@ export function applyOffset(shape: ChordShape, offset: number): AbsoluteVoicing 
 // rootStringIndex: 0=lowE, 1=A, 2=D, 3=G, 4=B, 5=highE
 
 export const CAGED_SHAPES: ChordShape[] = [
-	// ===== E-shape family =====
-	// Root on string 0 (low E)
-	{ family: 'E', quality: 'Major', frets: [0, 2, 2, 1, 0, 0], rootStringIndex: 0 },
-	{ family: 'E', quality: 'Minor', frets: [0, 2, 2, 0, 0, 0], rootStringIndex: 0 },
-	{ family: 'E', quality: 'Minor', frets: [0, 2, 2, 0, 0, 3], rootStringIndex: 0 },
-	{ family: 'E', quality: 'Diminished', frets: [0, 1, 2, 0, null, null], rootStringIndex: 0 },
-	{ family: 'E', quality: 'Augmented', frets: [0, 3, 2, 1, 1, 0], rootStringIndex: 0 },
-	{ family: 'E', quality: 'Sus2', frets: [0, 2, 4, 4, 0, 0], rootStringIndex: 0 },
-	{ family: 'E', quality: 'Sus4', frets: [0, 2, 2, 2, 0, 0], rootStringIndex: 0 },
-	{ family: 'E', quality: 'Dominant 7', frets: [0, 2, 0, 1, 0, 0], rootStringIndex: 0 },
-	{ family: 'E', quality: 'Dominant 7', frets: [0, 2, 0, 1, 3, 0], rootStringIndex: 0 },
-	{ family: 'E', quality: 'Major 7', frets: [0, 2, 1, 1, 0, 0], rootStringIndex: 0 },
-	{ family: 'E', quality: 'Minor 7', frets: [0, 2, 0, 0, 0, 0], rootStringIndex: 0 },
+
+	// ===== C-shape family =====
+	// Root on string 1 (A) at fret 3
+	{ family: 'C', quality: 'Major', frets: [null, 3, 2, 0, 1, 0], rootStringIndex: 1 },
+	{ family: 'C', quality: 'Minor', frets: [null, 3, 1, 0, 1, 3], rootStringIndex: 1 },
+	{ family: 'C', quality: 'Diminished', frets: [null, 4, 2, 0, null, null], rootStringIndex: 1 },
+	{ family: 'C', quality: 'Augmented', frets: [null, 3, 2, 1, 1, 0], rootStringIndex: 1 },
+	{ family: 'C', quality: 'Sus2', frets: [null, 3, 0, 0, 1, null], rootStringIndex: 1 },
+	{ family: 'C', quality: 'Sus4', frets: [null, 3, 3, 0, 1, 1], rootStringIndex: 1 },
+	{ family: 'C', quality: 'Dominant 7', frets: [null, 3, 2, 3, 1, 0], rootStringIndex: 1 },
+	{ family: 'C', quality: 'Major 7', frets: [null, 3, 2, 0, 0, 0], rootStringIndex: 1 },
+	{ family: 'C', quality: 'Minor 7', frets: [null, 3, 1, 3, 1, 3], rootStringIndex: 1 },
+	{ family: 'C', quality: 'Power Chord', frets: [null, null, null, 0, 1, null], rootStringIndex: 4 },
+	{ family: 'C', quality: 'Diminished 7', frets: [2, null, 1, 2, 1, null], rootStringIndex: 4 },
+	{ family: 'C', quality: 'Half-Diminished', frets: [null, 1, 1, 3, 1, 2], rootStringIndex: 4 },
+	{ family: 'C', quality: 'Augmented 7', frets: [null, 1, 2, 1, 1, null], rootStringIndex: 4 },
+	{ family: 'C', quality: 'Major 6', frets: [null, null, 2, 2, 1, 3], rootStringIndex: 4 },
+	{ family: 'C', quality: 'Minor 6', frets: [null, 3, 1, 2, 1, 3], rootStringIndex: 1 },
+	{ family: 'C', quality: 'Add 9', frets: [null, 3, 2, 0, 3, 0], rootStringIndex: 1 },
+	{ family: 'C', quality: 'Add 11', frets: [null, 3, 2, 0, 1, 1], rootStringIndex: 1 },
 
 	// ===== A-shape family =====
 	// Root on string 1 (A)
@@ -78,18 +85,48 @@ export const CAGED_SHAPES: ChordShape[] = [
 	{ family: 'A', quality: 'Major 7', frets: [null, 0, 2, 1, 2, 0], rootStringIndex: 1 },
 	{ family: 'A', quality: 'Minor 7', frets: [null, 0, 2, 0, 1, 0], rootStringIndex: 1 },
 	{ family: 'A', quality: 'Minor 7', frets: [null, 0, 2, 0, 1, 3], rootStringIndex: 1 },
+	{ family: 'A', quality: 'Power Chord', frets: [0, 0, 2, 2, null, null], rootStringIndex: 1 },
+	{ family: 'A', quality: 'Half-Diminished', frets: [null, 0, 1, 0, 1, null], rootStringIndex: 1 },
+	{ family: 'A', quality: 'Augmented 7', frets: [null, 0, null, 0, 2, 1], rootStringIndex: 1 },
+	{ family: 'A', quality: 'Minor-Major 7', frets: [null, 0, 2, 1, 1, 0], rootStringIndex: 1 },
+	{ family: 'A', quality: '7sus4', frets: [null, 0, 2, 0, 3, 0], rootStringIndex: 1 },
+	{ family: 'A', quality: 'Major 6', frets: [null, 0, 2, 2, 2, 2], rootStringIndex: 1 },
+	{ family: 'A', quality: 'Minor 6', frets: [null, null, 2, 2, 1, 2], rootStringIndex: 3 },
 
-	// ===== C-shape family =====
-	// Root on string 1 (A) at fret 3
-	{ family: 'C', quality: 'Major', frets: [null, 3, 2, 0, 1, 0], rootStringIndex: 1 },
-	{ family: 'C', quality: 'Minor', frets: [null, 3, 1, 0, 1, 3], rootStringIndex: 1 },
-	{ family: 'C', quality: 'Diminished', frets: [null, 4, 2, 0, null, null], rootStringIndex: 1 },
-	{ family: 'C', quality: 'Augmented', frets: [null, 3, 2, 1, 1, 0], rootStringIndex: 1 },
-	{ family: 'C', quality: 'Sus2', frets: [null, 3, 0, 0, 1, null], rootStringIndex: 1 },
-	{ family: 'C', quality: 'Sus4', frets: [null, 3, 3, 0, 1, 1], rootStringIndex: 1 },
-	{ family: 'C', quality: 'Dominant 7', frets: [null, 3, 2, 3, 1, 0], rootStringIndex: 1 },
-	{ family: 'C', quality: 'Major 7', frets: [null, 3, 2, 0, 0, 0], rootStringIndex: 1 },
-	{ family: 'C', quality: 'Minor 7', frets: [null, 3, 1, 3, 1, 3], rootStringIndex: 1 },
+	// ===== G-shape family =====
+	// Root on string 0 (low E) at fret 3
+	{ family: 'G', quality: 'Major', frets: [3, 2, 0, 0, 0, 3], rootStringIndex: 0 },
+	{ family: 'G', quality: 'Minor', frets: [3, 1, 0, 0, 3, 3], rootStringIndex: 0 },
+	{ family: 'G', quality: 'Diminished', frets: [3, 4, 5, 3, null, null], rootStringIndex: 0 },
+	{ family: 'G', quality: 'Augmented', frets: [3, 2, 1, 0, 0, 3], rootStringIndex: 0 },
+	{ family: 'G', quality: 'Sus2', frets: [3, 0, 0, 0, 3, 3], rootStringIndex: 0 },
+	{ family: 'G', quality: 'Sus4', frets: [3, 3, 0, 0, 1, 3], rootStringIndex: 0 },
+	{ family: 'G', quality: 'Dominant 7', frets: [3, 2, 0, 0, 0, 1], rootStringIndex: 0 },
+	{ family: 'G', quality: 'Major 7', frets: [3, 2, 0, 0, 0, 2], rootStringIndex: 0 },
+	{ family: 'G', quality: 'Minor 7', frets: [3, 1, 0, 0, 3, 1], rootStringIndex: 0 },
+	{ family: 'G', quality: 'Power Chord', frets: [null, null, 0, 0, null, null], rootStringIndex: 3 },
+	{ family: 'G', quality: 'Major 6', frets: [0, 2, 0, 0, 0, 0], rootStringIndex: 3 },
+	{ family: 'G', quality: 'Minor 6', frets: [0, 1, 0, 0, 3, 0], rootStringIndex: 3 },
+	{ family: 'G', quality: 'Add 9', frets: [3, 2, 0, 2, 0, null], rootStringIndex: 0 },
+	{ family: 'G', quality: 'Add 11', frets: [3, 2, 0, 0, 1, null], rootStringIndex: 0 },
+
+	// ===== E-shape family =====
+	// Root on string 0 (low E)
+	{ family: 'E', quality: 'Major', frets: [0, 2, 2, 1, 0, 0], rootStringIndex: 0 },
+	{ family: 'E', quality: 'Minor', frets: [0, 2, 2, 0, 0, 0], rootStringIndex: 0 },
+	{ family: 'E', quality: 'Minor', frets: [0, 2, 2, 0, 0, 3], rootStringIndex: 0 },
+	{ family: 'E', quality: 'Diminished', frets: [0, 1, 2, 0, null, null], rootStringIndex: 0 },
+	{ family: 'E', quality: 'Augmented', frets: [0, 3, 2, 1, 1, 0], rootStringIndex: 0 },
+	{ family: 'E', quality: 'Sus2', frets: [0, 2, 4, 4, 0, 0], rootStringIndex: 0 },
+	{ family: 'E', quality: 'Sus4', frets: [0, 2, 2, 2, 0, 0], rootStringIndex: 0 },
+	{ family: 'E', quality: 'Dominant 7', frets: [0, 2, 0, 1, 0, 0], rootStringIndex: 0 },
+	{ family: 'E', quality: 'Dominant 7', frets: [0, 2, 0, 1, 3, 0], rootStringIndex: 0 },
+	{ family: 'E', quality: 'Major 7', frets: [0, 2, 1, 1, 0, 0], rootStringIndex: 0 },
+	{ family: 'E', quality: 'Minor 7', frets: [0, 2, 0, 0, 0, 0], rootStringIndex: 0 },
+	{ family: 'E', quality: 'Power Chord', frets: [0, 2, 2, null, null, null], rootStringIndex: 0 },
+	{ family: 'E', quality: 'Augmented 7', frets: [0, null, 0, 1, 1, null], rootStringIndex: 0 },
+	{ family: 'E', quality: 'Minor-Major 7', frets: [0, 2, 1, 0, 0, 0], rootStringIndex: 0 },
+	{ family: 'E', quality: '7sus4', frets: [0, 2, 0, 2, 0, 0], rootStringIndex: 0 },
 
 	// ===== D-shape family =====
 	// Root on string 2 (D)
@@ -103,16 +140,16 @@ export const CAGED_SHAPES: ChordShape[] = [
 	{ family: 'D', quality: 'Dominant 7', frets: [null, null, 0, 2, 1, 2], rootStringIndex: 2 },
 	{ family: 'D', quality: 'Major 7', frets: [null, null, 0, 2, 2, 2], rootStringIndex: 2 },
 	{ family: 'D', quality: 'Minor 7', frets: [null, null, 0, 2, 1, 1], rootStringIndex: 2 },
+	{ family: 'D', quality: 'Power Chord', frets: [null, null, 0, 2, null, null], rootStringIndex: 2 },
+	{ family: 'D', quality: 'Diminished 7', frets: [null, null, 0, 1, 0, 1], rootStringIndex: 2 },
+	{ family: 'D', quality: 'Half-Diminished', frets: [null, null, 0, 1, 1, 1], rootStringIndex: 2 },
+	{ family: 'D', quality: 'Minor-Major 7', frets: [null, null, 0, 2, 2, 1], rootStringIndex: 2 },
+	{ family: 'D', quality: '7sus4', frets: [null, null, 0, 2, 1, 3], rootStringIndex: 2 },
+	{ family: 'D', quality: 'Major 6', frets: [null, null, 0, 2, 0, 2], rootStringIndex: 2 },
+	{ family: 'D', quality: 'Minor 6', frets: [null, null, 0, 2, 0, 1], rootStringIndex: 2 },
+	{ family: 'D', quality: 'Add 11', frets: [null, 5, 4, 2, 3, 3], rootStringIndex: 1 },
+	{ family: 'E', quality: 'Power Chord', frets: [null, null, 0, 2, null, null], rootStringIndex: 2 },
 
-	// ===== G-shape family =====
-	// Root on string 0 (low E) at fret 3
-	{ family: 'G', quality: 'Major', frets: [3, 2, 0, 0, 0, 3], rootStringIndex: 0 },
-	{ family: 'G', quality: 'Minor', frets: [3, 1, 0, 0, 3, 3], rootStringIndex: 0 },
-	{ family: 'G', quality: 'Diminished', frets: [3, 4, 5, 3, null, null], rootStringIndex: 0 },
-	{ family: 'G', quality: 'Augmented', frets: [3, 2, 1, 0, 0, 3], rootStringIndex: 0 },
-	{ family: 'G', quality: 'Sus2', frets: [3, 0, 0, 0, 3, 3], rootStringIndex: 0 },
-	{ family: 'G', quality: 'Sus4', frets: [3, 3, 0, 0, 1, 3], rootStringIndex: 0 },
-	{ family: 'G', quality: 'Dominant 7', frets: [3, 2, 0, 0, 0, 1], rootStringIndex: 0 },
-	{ family: 'G', quality: 'Major 7', frets: [3, 2, 0, 0, 0, 2], rootStringIndex: 0 },
-	{ family: 'G', quality: 'Minor 7', frets: [3, 1, 0, 0, 3, 1], rootStringIndex: 0 }
+
+
 ];
