@@ -67,6 +67,7 @@ const translations = {
 				playing: 'Playing...',
 				next: 'Next'
 			},
+			openChords: 'Open chords only',
 			score: 'Score:',
 			infoPanel: {
 				key: 'Key',
@@ -152,6 +153,7 @@ const translations = {
 				playing: 'Přehrávání...',
 				next: 'Další'
 			},
+			openChords: 'Jen otevřené akordy',
 			score: 'Skóre:',
 			infoPanel: {
 				key: 'Tónina',

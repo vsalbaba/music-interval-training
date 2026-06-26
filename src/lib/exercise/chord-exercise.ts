@@ -21,40 +21,6 @@ export interface ChordQuestion {
 	playedNotes: AbsoluteStringNote[];
 }
 
-function selectPlayedNotes(voicing: AbsoluteVoicing): AbsoluteStringNote[] {
-	const sounded = voicing.strings.filter((s): s is AbsoluteStringNote => s !== null);
-
-	const byPitchClass = new Map<number, AbsoluteStringNote[]>();
-	for (const note of sounded) {
-		const group = byPitchClass.get(note.pitchClass) ?? [];
-		group.push(note);
-		byPitchClass.set(note.pitchClass, group);
-	}
-
-	const selected: AbsoluteStringNote[] = [];
-	for (const [, notes] of byPitchClass) {
-		notes.sort((a, b) => a.stringIndex - b.stringIndex);
-		selected.push(notes[0]);
-	}
-
-	selected.sort((a, b) => a.stringIndex - b.stringIndex);
-
-	const root = selected.find((n) => n.isRoot);
-	if (root) {
-		const highest = selected.reduce((a, b) => (a.midi > b.midi ? a : b));
-		if (Math.floor(highest.midi / 12) !== Math.floor(root.midi / 12)) {
-			const rootOctave = sounded.find(
-				(n) => n.pitchClass === root.pitchClass && n.midi > root.midi
-			);
-			if (rootOctave && rootOctave.midi < highest.midi && !selected.some((n) => n.midi === rootOctave.midi)) {
-				selected.push(rootOctave);
-				selected.sort((a, b) => a.stringIndex - b.stringIndex);
-			}
-		}
-	}
-
-	return selected;
-}
 
 const FAMILY_ROOT_STRING: Record<CagedFamily, number> = {
 	'C': 1,
@@ -68,11 +34,15 @@ export function getChordVoicing(family: CagedFamily, offset: number, quality: Ch
 	return getChordVoicingNotes(family, offset, quality).map(n => n.midi);
 }
 
+function allSoundedNotes(voicing: AbsoluteVoicing): AbsoluteStringNote[] {
+	return voicing.strings.filter((s): s is AbsoluteStringNote => s !== null);
+}
+
 export function getChordVoicingNotes(family: CagedFamily, offset: number, quality: ChordQuality): AbsoluteStringNote[] {
 	const shape = CAGED_SHAPES.find(s => s.family === family && s.quality === quality.name);
 	if (shape) {
 		const voicing = applyOffset(shape, offset);
-		return selectPlayedNotes(voicing);
+		return allSoundedNotes(voicing);
 	}
 	const rootStringIndex = FAMILY_ROOT_STRING[family];
 	const rootMidi = STANDARD_TUNING[rootStringIndex] + offset;
@@ -85,7 +55,11 @@ export function getChordVoicingNotes(family: CagedFamily, offset: number, qualit
 	}));
 }
 
-export function generateChordQuestion(qualities: ChordQuality[]): ChordQuestion {
+export interface GenerateChordOptions {
+	openOnly?: boolean;
+}
+
+export function generateChordQuestion(qualities: ChordQuality[], options?: GenerateChordOptions): ChordQuestion {
 	let quality: ChordQuality;
 	let matchingShapes: ChordShape[];
 
@@ -105,10 +79,10 @@ export function generateChordQuestion(qualities: ChordQuality[]): ChordQuestion 
 	const shape = matchingShapes[Math.floor(Math.random() * matchingShapes.length)];
 
 	const offsets = getValidOffsets(shape);
-	const offset = offsets[Math.floor(Math.random() * offsets.length)];
+	const offset = options?.openOnly ? 0 : offsets[Math.floor(Math.random() * offsets.length)];
 
 	const voicing = applyOffset(shape, offset);
-	const playedNotes = selectPlayedNotes(voicing);
+	const playedNotes = allSoundedNotes(voicing);
 
 	const rootNote = playedNotes.find((n) => n.isRoot) ?? playedNotes[0];
 	const chordMidis = playedNotes.map((n) => n.midi);

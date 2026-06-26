@@ -24,6 +24,7 @@
 
 	let difficulty: ChordGroup = $state('triads');
 	let currentDiff = $derived(CHORD_GROUPS.find((d) => d.key === difficulty)!);
+	let openOnly = $state(false);
 
 	let question: ChordQuestion | null = $state(null);
 	let selectedAnswer: ChordQuality | null = $state(null);
@@ -100,7 +101,7 @@
 		isCorrect = null;
 		previewHighlights = null;
 		clearActiveNote();
-		question = generateChordQuestion(currentDiff.qualities);
+		question = generateChordQuestion(currentDiff.qualities, { openOnly });
 		selectedAnswer = null;
 		if (autoplay) playCurrentQuestion();
 	}
@@ -176,7 +177,7 @@
 </script>
 
 <!-- Difficulty selector -->
-<div class="mb-6 flex gap-1">
+<div class="mb-6 flex flex-wrap items-center gap-1">
 	{#each CHORD_GROUPS as diff}
 		<button
 			class="rounded px-3 py-1 text-xs font-medium transition-colors
@@ -186,6 +187,15 @@
 			{t(currentLocale, `ui.difficulty.${diff.key}`)}
 		</button>
 	{/each}
+	<label class="ml-3 flex cursor-pointer items-center gap-1.5 text-xs text-gray-400">
+		<input
+			type="checkbox"
+			class="accent-indigo-500"
+			bind:checked={openOnly}
+			onchange={() => newQuestion()}
+		/>
+		{t(currentLocale, 'ui.openChords')}
+	</label>
 </div>
 
 <!-- Exercise Area -->
