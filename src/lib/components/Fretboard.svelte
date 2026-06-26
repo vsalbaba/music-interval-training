@@ -3,7 +3,7 @@
 	import { getFretboardNote, noteToString } from '$lib/music/notes';
 	import { getNoteNames, getStringLabels } from '$lib/i18n/translations';
 	import { locale } from '$lib/i18n/locale';
-	import type { HighlightedNote, MutedString } from '$lib/types/fretboard';
+	import type { HighlightedNote, MutedString, SelectedFret } from '$lib/types/fretboard';
 
 	let noteNames = $derived(getNoteNames($locale));
 	let stringLabels = $derived(getStringLabels($locale));
@@ -30,14 +30,41 @@
 		}, 500);
 	}
 
-	let { highlights = [], mutedStrings = [], activeNoteMidi = null as number | null }: { highlights?: HighlightedNote[]; mutedStrings?: MutedString[]; activeNoteMidi?: number | null } = $props();
+	let {
+		highlights = [],
+		mutedStrings = [],
+		activeNoteMidi = null as number | null,
+		selectable = false,
+		selectedFrets = $bindable<SelectedFret[]>([]),
+		onselectionchange = undefined as ((frets: SelectedFret[]) => void) | undefined,
+	}: {
+		highlights?: HighlightedNote[];
+		mutedStrings?: MutedString[];
+		activeNoteMidi?: number | null;
+		selectable?: boolean;
+		selectedFrets?: SelectedFret[];
+		onselectionchange?: (frets: SelectedFret[]) => void;
+	} = $props();
+
+	export function clearSelection() {
+		selectedFrets = [];
+		onselectionchange?.(selectedFrets);
+	}
 
 	const STRING_COUNT = 6;
 	const FRET_COUNT = 12;
 	const FRET_MARKERS = [3, 5, 7, 9];
 	const DOUBLE_MARKER = 12;
 
-	function getHighlight(stringIndex: number, fret: number, midi: number): 'root' | 'interval' | 'ghost' | null {
+	function isSelected(stringIndex: number, fret: number): boolean {
+		return selectedFrets.some((s) => s.stringIndex === stringIndex && s.fret === fret);
+	}
+
+	function getHighlight(stringIndex: number, fret: number, midi: number): 'root' | 'interval' | 'ghost' | 'selected' | 'correct' | 'wrong' | null {
+		if (selectable && isSelected(stringIndex, fret)) {
+			return 'selected';
+		}
+
 		const exactMatch = highlights.find(
 			(h) => h.stringIndex !== undefined && h.stringIndex === stringIndex && h.fret === fret
 		);
@@ -51,8 +78,26 @@
 		return mutedStrings.some((m) => m.stringIndex === stringIndex);
 	}
 
+	function toggleSelection(stringIndex: number, fret: number) {
+		if (isSelected(stringIndex, fret)) {
+			selectedFrets = selectedFrets.filter(
+				(s) => !(s.stringIndex === stringIndex && s.fret === fret)
+			);
+		} else {
+			selectedFrets = [
+				...selectedFrets.filter((s) => s.stringIndex !== stringIndex),
+				{ stringIndex, fret },
+			];
+		}
+		onselectionchange?.(selectedFrets);
+	}
+
 	async function handleClick(stringIndex: number, fret: number) {
-		showTappedNote(stringIndex, fret);
+		if (selectable) {
+			toggleSelection(stringIndex, fret);
+		} else {
+			showTappedNote(stringIndex, fret);
+		}
 		const note = getFretboardNote(stringIndex, fret);
 		audioEngine?.playNote(noteToString(note));
 	}
@@ -112,13 +157,19 @@
 											? 'bg-amber-500 text-black'
 											: highlight === 'interval'
 												? 'bg-sky-500 text-black'
-												: highlight === 'ghost'
-													? 'bg-gray-600/40 text-gray-400 border border-gray-500'
-													: tapState
-														? tapState.fading
-															? 'bg-gray-600 text-gray-200 opacity-0 duration-[2000ms]'
-															: 'bg-gray-600 text-gray-200'
-														: 'bg-transparent text-transparent group-hover:bg-gray-600 group-hover:text-gray-200'}
+												: highlight === 'selected'
+													? 'bg-blue-500 text-white'
+													: highlight === 'correct'
+														? 'bg-emerald-500 text-black'
+														: highlight === 'wrong'
+															? 'bg-red-500 text-white'
+															: highlight === 'ghost'
+																? 'bg-gray-600/40 text-gray-400 border border-gray-500'
+																: tapState
+																	? tapState.fading
+																		? 'bg-gray-600 text-gray-200 opacity-0 duration-[2000ms]'
+																		: 'bg-gray-600 text-gray-200'
+																	: 'bg-transparent text-transparent group-hover:bg-gray-600 group-hover:text-gray-200'}
 										{isActive ? 'ring-2 ring-yellow-300 ring-offset-1 ring-offset-gray-900' : ''}"
 								>
 									{noteNames[note.midi % 12]}
